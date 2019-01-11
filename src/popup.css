@@ -1,0 +1,166 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+body {
+  font-family: BlinkMacSystemFont, Roboto, sans-serif;
+}
+
+table {
+  font-size: inherit;
+  border-spacing: inherit;
+  color: inherit;
+}
+
+.panel {
+  width: 300pt;
+  float: left;
+  font-size: 8pt;
+  margin-bottom: 8px;
+}
+
+.overlay {
+  padding-top: 6pt;
+  color: gray;
+}
+
+.overlay-element {
+  text-align: center;
+  height: 16pt;
+}
+
+#results {
+  margin-top: -7px;
+}
+
+.sectionheader {
+  margin-top: 7px;
+  background: #e0e0e0;
+  color: white;
+  padding: 2px 4px;
+}
+
+.incomingRequiringAttention > .sectionheader {
+  background: #d32f2f;
+}
+
+.outgoingRequiringAttention > .sectionheader {
+  background: #7e57c2;
+}
+
+.approved > .sectionheader {
+  background: #00796b;
+}
+
+.notMailed > .sectionheader {
+  background: #bdbdbd;
+}
+
+.stale > .sectionheader {
+  background: #1976d2;
+}
+
+.changelist {
+  width: 100%;
+  color: #505050;
+  cursor: default;
+}
+
+.changelistheader {
+}
+
+.changelistheader:hover {
+  background: #eaeaea;
+}
+
+.changelisttable {
+  width: 100%;
+}
+
+.description {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #777;
+  width: 215pt;
+}
+
+.author, .reviewers {
+  overflow: hidden;
+  width: 70pt;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.approved .author, .notMailed .author, .outgoingRequiringAttention .author,
+.stale .author {
+  display: none;
+}
+
+.incomingRequiringAttention .reviewers {
+  display: none;
+}
+
+.lgtmreviewer {
+  color: #00796b;
+  font-weight: bold;
+}
+
+.statusmarker {
+  width: 11px;
+}
+
+.marker {
+  border-radius: 3px;
+  background: #a1887f;
+  opacity: 0.75;
+}
+
+.pendingmarker {
+  background: #f3c65b;
+}
+
+.lgtmmarker {
+  background: #477c0b;
+}
+
+.submittedmarker {
+  background: #757575;
+}
+
+.tbrmarker {
+  background: #b64333;
+}
+
+.smallsize {
+  margin-left: 4px;
+  margin-top: 2px;
+  width: 3px;
+  height: 3px;
+}
+
+.mediumsize {
+  margin-left: 3px;
+  margin-top: 1px;
+  width: 5px;
+  height: 5px;
+}
+
+.largesize {
+  margin-left: 2px;
+  margin-top: 0px;
+  width: 7px;
+  height: 7px;
+}

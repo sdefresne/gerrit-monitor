@@ -1,0 +1,48 @@
+{
+  "manifest_version": 2,
+
+  "name": "Gerrit Monitor",
+  "description": "Monitor your CLs on Gerrit",
+  "version": "1.0.0",
+
+  "icons": {
+    "48": "img/icon48.png",
+    "128": "img/icon128.png"
+  },
+
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
+
+  "optional_permissions": [
+    "http://*/",
+    "https://*/"
+  ],
+
+  "browser_action": {
+    "default_icon": {
+      "24": "img/ic_assignment_black_24dp_1x.png",
+      "48": "img/ic_assignment_black_24dp_2x.png"
+    },
+    "default_title": "Unknown",
+    "default_popup": "popup.html"
+  },
+
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
+
+  "background": {
+    "persistent": false,
+    "scripts": [
+      "utils.js",
+      "config.js",
+      "browser.js",
+      "gerrit.js",
+      "messages.js",
+      "badge.js"
+    ]
+  }
+}

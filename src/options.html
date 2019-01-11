@@ -1,0 +1,54 @@
+<!--
+  Copyright 2019 Google LLC
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <script src="utils.js"></script>
+    <script src="dombuilder.js"></script>
+    <script src="config.js"></script>
+    <script src="browser.js"></script>
+    <script src="gerrit.js"></script>
+    <script src="messages.js"></script>
+    <script src="comm.js"></script>
+    <script src="options.js"></script>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <div>
+      <table id="instances">
+        <tr>
+          <td>
+            <input id="add-button-name" type="text" placeholder="Instance name">
+          </td>
+          <td>
+            <input id="add-button-host" type="text" placeholder="Instance URL">
+          </td>
+          <td>
+            <button id="add-button">Add</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div>
+      <button id="save-button" style="">Save</button>
+      <span id="status"></span>
+    </div>
+
+  </body>
+</html>

@@ -58,4 +58,8 @@ Apache header:
     See the License for the specific language governing permissions and
     limitations under the License.
 
+## Disclaimer
+
+This is not an officially supported Google product.
+
 [1]: https://chrome.google.com/webstore/detail/gerrit-monitor/leakcdjcdifiihdgalplgkghidmfafoh
