@@ -41,6 +41,11 @@
       name: 'Chromium',
       host: 'https://chromium-review.googlesource.com',
       enabled: false,
+    },
+    {
+      name: 'Fuchsia',
+      host: 'https://fuchsia-review.googlesource.com',
+      enabled: false,
     }],
   };
 
