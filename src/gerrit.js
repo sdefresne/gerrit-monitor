@@ -424,7 +424,7 @@
     var params = [];
     var userid = account._account_id;
     params.push(['q', 'status:open owner:' + userid]);
-    params.push(['q', 'status:open reviewer:' + userid + ' -owner:' + userid]);
+    params.push(['q', 'status:open -is:ignored reviewer:' + userid + ' -owner:' + userid]);
     params.push(['o', 'DETAILED_LABELS']);
     params.push(['o', 'REVIEWED']);
     params.push(['o', 'SUBMITTABLE']);
