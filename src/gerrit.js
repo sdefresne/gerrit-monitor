@@ -46,9 +46,11 @@
             this.json_.real_author._account_id == user._account_id;
   };
 
-  // Returns the date of the message.
-  Message.prototype.getDate = function() {
-    return new Date(this.json_.date);
+  // Returns the time of the message.
+  Message.prototype.getTime = function() {
+    // Gerrit returns times in the format "YYYY-MM-DD HH:MM:SS.000000000", in
+    // UTC.
+    return new Date(this.json_.date + " UTC");
   };
 
   Message.wrap = function(json) {
@@ -130,7 +132,8 @@
     if (!lastMessage)
       return true;
 
-    var timeSinceLastMessageInMilliseconds = new Date() - lastMessage.getDate();
+    var timeSinceLastMessageInMilliseconds =
+        new Date().getTime() - lastMessage.getTime();
     return timeSinceLastMessageInMilliseconds > 1000 * 3600 * 24;
   };
 
