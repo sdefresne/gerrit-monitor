@@ -26,7 +26,7 @@
   config.ORIGIN_REGEXP = new RegExp('^' + config.ORIGIN_PATTERN);
 
   // Login prompt.
-  config.LOGIN_PROMPT = ' Try loggin in.';
+  config.LOGIN_PROMPT = ' Try logging in.';
 
   // Missing configuration.
   config.NO_HOST_ALLOWED = 'no host configured.';
