@@ -403,9 +403,43 @@
   //
   // Returns a promise containing the JSON reply or an error.
   gerrit.sendRequest = function(host, path, params) {
-    return browser.fetchUrl(host + path, params, {
+    let tryFetch = function() {
+      return browser.fetchUrl(host + path, params, {
         'pragma': 'no-cache',
         'cache-control': 'no-cache, must-revalidate',
+      })
+    };
+
+    return tryFetch()
+      .catch(function(error) {
+        // Just pass through non-login errors.
+        if (!(error instanceof browser.FetchError) || !error.is_login_error) {
+          return Promise.resolve(error);
+        }
+        // Some Gerrit instances attempt to redirect the user via an
+        // authentication server every few hours to refresh some cookies. Such
+        // redirects will fail, due to Chrome's CORS restrictions.
+        //
+        // In these cases, we can attempt to send an opaque request (with "mode:
+        // no-cors") that _will_ successfully redirect via the authentication
+        // server and refresh any cookies, and then send the original request
+        // again.
+        //
+        // This won't solve cases where a user needs to type in a password, but
+        // will allow GerritMonitor to continue working if the problem is simply
+        // an authentication cookie refresh was required.
+        return fetch(host, {
+            mode: 'no-cors',
+            credentials: 'include',
+          })
+          .then(function(_) {
+            // Try original request again.
+            return tryFetch();
+          })
+          .catch(function(_) {
+            // If we failed, return the original error we got.
+            return Promise.resolve(error);
+          });
       });
   };
 
