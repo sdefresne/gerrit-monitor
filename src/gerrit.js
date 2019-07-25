@@ -414,7 +414,7 @@
       .catch(function(error) {
         // Just pass through non-login errors.
         if (!(error instanceof browser.FetchError) || !error.is_login_error) {
-          return Promise.resolve(error);
+          return Promise.reject(error);
         }
         // Some Gerrit instances attempt to redirect the user via an
         // authentication server every few hours to refresh some cookies. Such
@@ -438,7 +438,7 @@
           })
           .catch(function(_) {
             // If we failed, return the original error we got.
-            return Promise.resolve(error);
+            return Promise.reject(error);
           });
       });
   };
