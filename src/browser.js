@@ -52,6 +52,15 @@
     return document.createTextNode(value);
   };
 
+  // FetchError represents errors while attempting to fetch a URL.
+  browser.FetchError = function(message, is_login_error) {
+    Error.call(this, message);
+    this.message = message;
+    this.is_login_error = is_login_error;
+  }
+  browser.FetchError.prototype = Object.create(Error.prototype);
+  browser.FetchError.prototype.constructor = browser.FetchError;
+
   // Returns a promise that will resolve to the content of the given path.
   browser.fetchUrl = function(path, params, headers) {
     return new Promise(function(resolve, reject) {
@@ -80,16 +89,21 @@
         } else if (xhr.statusText == 'OK') {
           // The error message is in the response body. Those are likely
           // auth-related issues, so add login prompt.
-          reject(new Error(xhr.responseText + config.LOGIN_PROMPT));
+          reject(new browser.FetchError(xhr.responseText + config.LOGIN_PROMPT,
+            true));
         } else if (xhr.status >= 400 && xhr.status <= 403) {
           // Authentication error, offer login.
-          reject(new Error("HTTP " + xhr.status + config.LOGIN_PROMPT));
+          reject(
+            new browser.FetchError("HTTP " + xhr.status + config.LOGIN_PROMPT,
+              true));
         } else if (xhr.statusText == '' && xhr.status == 0) {
           // No error text and a status of 0 usually indicate a missing
-          // cookie, so add login prompt.
-          reject(new Error('Unknown error.' + config.LOGIN_PROMPT));
+          // cookie (e.g., a redirect to a sign-in service, which fails
+          // the request due to Chrome's CORS restrictions). Add login prompt.
+          reject(new browser.FetchError('Unknown error.' + config.LOGIN_PROMPT,
+            true));
         } else {
-          reject(new Error(xhr.statusText));
+          reject(new browser.FetchError(xhr.statusText, false));
         }
       };
       xhr.send(null);
