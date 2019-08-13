@@ -12,68 +12,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-(function(namespace) {
+// Implementation of a Map type.
 
-  if (namespace.utils)
-    return;
+export function Map() {
+  this.entries_ = {};
+  this.size_ = 0;
+};
 
-  var utils = {};
-  namespace.utils = utils;
+Map.prototype.put = function(key, value) {
+  if (!this.has(key))
+    this.size_++;
+  this.entries_[key] = value;
+  return this;
+};
 
-  // Implementation of a Map type.
+Map.prototype.remove = function(key) {
+  if (!this.has(key))
+    return false;
+  delete this.entries_[key];
+  this.size_--;
+  return true;
+};
 
-  function Map() {
-    this.entries_ = {};
-    this.size_ = 0;
-  };
+Map.prototype.get = function(key, optDefault) {
+  return this.has(key) ? this.entries_[key] : optDefault;
+};
 
-  Map.prototype.put = function(key, value) {
-    if (!this.has(key))
-      this.size_++;
-    this.entries_[key] = value;
-    return this;
-  };
+Map.prototype.has = function(key) {
+  return this.entries_.hasOwnProperty(key);
+};
 
-  Map.prototype.remove = function(key) {
-    if (!this.has(key))
-      return false;
-    delete this.entries_[key];
-    this.size_--;
-    return true;
-  };
+Map.prototype.isEmpty = function() {
+  return this.size_ == 0;
+};
 
-  Map.prototype.get = function(key, optDefault) {
-    return this.has(key) ? this.entries_[key] : optDefault;
-  };
+Map.prototype.toJSON = function() {
+  return this.entries_;
+};
 
-  Map.prototype.has = function(key) {
-    return this.entries_.hasOwnProperty(key);
-  };
+Map.prototype.forEach = function(thunk) {
+  for (var prop in this.entries_) {
+    if (this.has(prop))
+      thunk(prop, this.get(prop));
+  }
+};
 
-  Map.prototype.isEmpty = function() {
-    return this.size_ == 0;
-  };
-
-  Map.prototype.toJSON = function() {
-    return this.entries_;
-  };
-
-  Map.prototype.forEach = function(thunk) {
-    for (var prop in this.entries_) {
-      if (this.has(prop))
-        thunk(prop, this.get(prop));
-    }
-  };
-
-  Map.wrap = function(object) {
-    var map = new Map();
-    for (var prop in object) {
-      if (object.hasOwnProperty(prop))
-        map.put(prop, object[prop]);
-    }
-    return map;
-  };
-
-  utils.Map = Map;
-
-})(this);
+Map.wrap = function(object) {
+  var map = new Map();
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop))
+      map.put(prop, object[prop]);
+  }
+  return map;
+};

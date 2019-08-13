@@ -12,26 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-(function(namespace) {
+import * as browser from './browser.js';
 
-  if (namespace.comm)
-    return;
-
-  var comm = {};
-  namespace.comm = comm;
-
-  // Sends a message to the badge.
-  comm.sendMessage = function() {
-    var args = Array.prototype.slice.call(arguments);
-    return new Promise(function(resolve, reject) {
-      browser.sendExtensionMessage(args, function(response) {
-        if (response.hasOwnProperty('value')) {
-          resolve(response.value);
-        } else {
-          reject(response.error);
-        }
-      });
+// Sends a message to the badge.
+export function sendMessage() {
+  var args = Array.prototype.slice.call(arguments);
+  return new Promise(function(resolve, reject) {
+    browser.sendExtensionMessage(args, function(response) {
+      if (response.hasOwnProperty('value')) {
+        resolve(response.value);
+      } else {
+        reject(response.error);
+      }
     });
-  };
-
-})(this);
+  });
+};
