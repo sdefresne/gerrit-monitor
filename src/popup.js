@@ -20,189 +20,195 @@ import * as gerrit from './gerrit.js';
 import * as messages from './messages.js';
 
 // The main widget in the popup.
-function PopupWidget() {
-  this.sections_ = [];
+class PopupWidget {
+  constructor() {
+    this.sections_ = [];
+  }
+
+  // Returns the section widgets displayed in this popup widget.
+  getSections() {
+    return this.sections_;
+  }
+
+  // Adds a section widget to this popup.
+  addSection(section) {
+    if (section != null)
+      this.sections_.push(section);
+  }
+
+  // Renders this widget using the given builder.
+  render(builder) {
+    this.sections_.forEach(function (section) {
+      section.render(builder);
+    });
+  }
+
+  // Returns a new PopupWidget from search results.
+  static create(results) {
+    var categories = results.getCategoryMap();
+
+    // Add sections in priority order.
+    var widget = new PopupWidget();
+    messages.SECTION_ORDERING.forEach(function (attention) {
+      if (categories.has(attention)) {
+        widget.addSection(SectionWidget.create(
+            attention, categories.get(attention)));
+      }
+    });
+
+    return widget;
+  }
 }
-
-// Returns the section widgets displayed in this popup widget.
-PopupWidget.prototype.getSections = function() {
-  return this.sections_;
-};
-
-// Adds a section widget to this popup.
-PopupWidget.prototype.addSection = function(section) {
-  if (section != null)
-    this.sections_.push(section);
-};
-
-// Renders this widget using the given builder.
-PopupWidget.prototype.render = function(builder) {
-  this.sections_.forEach(function(section) {
-    section.render(builder);
-  });
-};
-
-// Returns a new PopupWidget from search results.
-PopupWidget.create = function(results) {
-  var categories = results.getCategoryMap();
-
-  // Add sections in priority order.
-  var widget = new PopupWidget();
-  messages.SECTION_ORDERING.forEach(function(attention) {
-    if (categories.has(attention)) {
-      widget.addSection(SectionWidget.create(
-          attention, categories.get(attention)));
-    }
-  });
-
-  return widget;
-};
 
 // A widget displaying a section of CLs.
-function SectionWidget(attention) {
-  this.attention_ = attention;
-  this.cls_ = [];
-}
+class SectionWidget {
+  constructor(attention) {
+    this.attention_ = attention;
+    this.cls_ = [];
+  }
 
-// Adds a CL to be dislayed under this section.
-SectionWidget.prototype.addChangelist = function(cl) {
-  this.cls_.push(cl);
-};
+  // Adds a CL to be dislayed under this section.
+  addChangelist(cl) {
+    this.cls_.push(cl);
+  }
 
-// Renders this widget using the given builder.
-SectionWidget.prototype.render = function(builder) {
-  var data = messages.POPUP_SECTION_DATA[this.attention_];
-  builder
-    .begin('div')
-      .addClass('section')
-      .addClass(data.className)
+  // Renders this widget using the given builder.
+  render(builder) {
+    var data = messages.POPUP_SECTION_DATA[this.attention_];
+    builder
       .begin('div')
-        .appendText(data.formatHeader(this.cls_.length))
-        .addClass('sectionheader')
-      .end('div')
-      .forEach(this.cls_, function(cl, builder, index) {
-        cl.render(builder);
-      })
-    .end('div');
-};
+        .addClass('section')
+        .addClass(data.className)
+        .begin('div')
+          .appendText(data.formatHeader(this.cls_.length))
+          .addClass('sectionheader')
+        .end('div')
+        .forEach(this.cls_, function(cl, builder, index) {
+          cl.render(builder);
+        })
+      .end('div');
+  }
 
-// Returns a new SectionWidget with the CLs for the attention.
-SectionWidget.create = function(attention, cls) {
-  var widget = new SectionWidget(attention);
-  cls.forEach(function(cl) {
-    widget.addChangelist(ChangelistWidget.wrap(cl));
-  });
-  return widget;
+  // Returns a new SectionWidget with the CLs for the attention.
+  static create(attention, cls) {
+    var widget = new SectionWidget(attention);
+    cls.forEach(function (cl) {
+      widget.addChangelist(ChangelistWidget.wrap(cl));
+    });
+    return widget;
+  }
 }
 
 // A widget displaying a single CL.
-function ChangelistWidget(cl) {
-  this.cl_ = cl;
-}
+class ChangelistWidget {
+  constructor(cl) {
+    this.cl_ = cl;
+  }
 
-// Returns an Url to open Gerrit at this CL.
-ChangelistWidget.prototype.getGerritUrl = function() {
-  return this.cl_.getGerritUrl();
-};
+  // Returns an Url to open Gerrit at this CL.
+  getGerritUrl() {
+    return this.cl_.getGerritUrl();
+  }
 
-// Returns the author of this CL.
-ChangelistWidget.prototype.getAuthor = function() {
-  return this.cl_.getAuthor();
-};
+  // Returns the author of this CL.
+  getAuthor() {
+    return this.cl_.getAuthor();
+  }
 
-// Returns the class of the status marker to use for this CL.
-ChangelistWidget.prototype.getStatusMarker = function() {
-  // Do not use colored status marker for the moment as the output feels
-  // to crowded. TODO(sdefresne): revisit this eventually.
-  return '';
+  // Returns the class of the status marker to use for this CL.
+  getStatusMarker() {
+    // Do not use colored status marker for the moment as the output feels
+    // to crowded. TODO(sdefresne): revisit this eventually.
+    return '';
 
-  if (this.cl_.hasUnresolvedComments())
-    return 'tbr';
-  if (this.cl_.isSubmittable())
-    return 'lgtm';
-  return 'pending';
-};
+    if (this.cl_.hasUnresolvedComments())
+      return 'tbr';
+    if (this.cl_.isSubmittable())
+      return 'lgtm';
+    return 'pending';
+  }
 
-// Returns the CL size category.
-ChangelistWidget.prototype.getSizeCategory = function() {
-  return this.cl_.getSizeCategory();
-};
+  // Returns the CL size category.
+  getSizeCategory() {
+    return this.cl_.getSizeCategory();
+  }
 
-// Returns the list of reviewers of this CL.
-ChangelistWidget.prototype.getReviewers = function() {
-  return this.cl_.getReviewers();
-};
+  // Returns the list of reviewers of this CL.
+  getReviewers() {
+    return this.cl_.getReviewers();
+  }
 
-// Returns the CL description.
-ChangelistWidget.prototype.getDescription = function() {
-  return this.cl_.getDescription();
-};
+  // Returns the CL description.
+  getDescription() {
+    return this.cl_.getDescription();
+  }
 
-// Configure click event on the table row.
-ChangelistWidget.prototype.setHeader = function(node) {
-  node.addEventListener('click', (function() {
-    browser.openUrl(this.getGerritUrl());
-  }).bind(this));
-};
+  // Configure click event on the table row.
+  setHeader(node) {
+    node.addEventListener('click', (function () {
+      browser.openUrl(this.getGerritUrl());
+    }).bind(this));
+  }
 
-// Renders this widget using the given builder.
-ChangelistWidget.prototype.render = function(builder) {
-  builder
-    .begin('div')
-      .addClass('changelist')
+  // Renders this widget using the given builder.
+  render(builder) {
+    builder
       .begin('div')
-        .addClass('changelistheader')
-        .withCurrentNode(this.setHeader.bind(this))
-        .begin('table')
-          .addClass('changelisttable')
-          .begin('tr')
-            .begin('td')
-              .begin('div')
-                .addClass('statusmarker')
+        .addClass('changelist')
+        .begin('div')
+          .addClass('changelistheader')
+          .withCurrentNode(this.setHeader.bind(this))
+          .begin('table')
+            .addClass('changelisttable')
+            .begin('tr')
+              .begin('td')
                 .begin('div')
-                  .addClass('marker')
-                  .addClass(this.getStatusMarker() + 'marker')
-                  .addClass(this.getSizeCategory() + 'size')
+                  .addClass('statusmarker')
+                  .begin('div')
+                    .addClass('marker')
+                    .addClass(this.getStatusMarker() + 'marker')
+                    .addClass(this.getSizeCategory() + 'size')
+                  .end('div')
                 .end('div')
-              .end('div')
-            .end('td')
-            .begin('td')
-              .begin('div')
-                .addClass('author')
-                .appendText(this.getAuthor())
-              .end('div')
-            .end('td')
-            .begin('td')
-              .begin('div')
-                .addClass('reviewers')
-                .forEach(this.getReviewers(), function(info, builder, index) {
-                  if (index > 0)
-                    builder.appendText(', ');
-                  var lgtm = info.value > 0;
-                  builder
-                    .begin('span')
-                      .addClass(lgtm ? 'lgtmreviewer' : 'nolgtmreviewer')
-                      .appendText(info.name)
-                    .end('span');
-                })
-              .end('div')
-            .end('td')
-            .begin('td')
-              .begin('div')
-                .addClass('description')
-                .appendText(this.getDescription().getMessage())
-              .end('div')
-            .end('td')
-          .end('tr')
-        .end('table')
-      .end('div')
-    .end('div');
-};
+              .end('td')
+              .begin('td')
+                .begin('div')
+                  .addClass('author')
+                  .appendText(this.getAuthor())
+                .end('div')
+              .end('td')
+              .begin('td')
+                .begin('div')
+                  .addClass('reviewers')
+                  .forEach(this.getReviewers(), function(info, builder, index) {
+                    if (index > 0)
+                      builder.appendText(', ');
+                    var lgtm = info.value > 0;
+                    builder
+                      .begin('span')
+                        .addClass(lgtm ? 'lgtmreviewer' : 'nolgtmreviewer')
+                        .appendText(info.name)
+                      .end('span');
+                  })
+                .end('div')
+              .end('td')
+              .begin('td')
+                .begin('div')
+                  .addClass('description')
+                  .appendText(this.getDescription().getMessage())
+                .end('div')
+              .end('td')
+            .end('tr')
+          .end('table')
+        .end('div')
+      .end('div');
+  }
 
-// Creates a changelist widget based on the given CL.
-ChangelistWidget.wrap = function(cl) {
-  return new ChangelistWidget(cl);
-};
+  // Creates a changelist widget based on the given CL.
+  static wrap(cl) {
+    return new ChangelistWidget(cl);
+  }
+}
 
 // Renders the main widget as part of the DOM.
 function renderWidget(widget) {

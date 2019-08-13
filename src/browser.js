@@ -49,13 +49,13 @@ export function createTextNode(value) {
 };
 
 // FetchError represents errors while attempting to fetch a URL.
-export function FetchError(message, is_login_error) {
-  Error.call(this, message);
-  this.message = message;
-  this.is_login_error = is_login_error;
+export class FetchError extends Error {
+  constructor(message, is_login_error) {
+    super(message);
+    this.message = message;
+    this.is_login_error = is_login_error;
+  }
 }
-FetchError.prototype = Object.create(Error.prototype);
-FetchError.prototype.constructor = FetchError;
 
 // Returns a promise that will resolve to the content of the given path.
 export function fetchUrl(path, params, headers) {

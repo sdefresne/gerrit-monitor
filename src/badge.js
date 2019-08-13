@@ -127,13 +127,15 @@ function newMessageProxy(handler) {
 };
 
 // Handler object for responding to requests from the popup.
-function RequestProxy() {};
+class RequestProxy {
+  constructor() {}
 
-// Returns the search results displayed in the popup. If no search
-// results are saved, then cause the badge to refresh.
-RequestProxy.prototype.getSearchResults = function(hosts) {
-  return fetchAndUpdate(hosts, true);
-};
+  // Returns the search results displayed in the popup. If no search
+  // results are saved, then cause the badge to refresh.
+  getSearchResults(hosts) {
+    return fetchAndUpdate(hosts, true);
+  }
+}
 
 browser.callWhenLoaded(function() {
   browser.addExtensionMessageListener(

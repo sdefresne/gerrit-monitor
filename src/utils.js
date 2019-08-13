@@ -13,55 +13,56 @@
 // limitations under the License.
 
 // Implementation of a Map type.
-
-export function Map() {
-  this.entries_ = {};
-  this.size_ = 0;
-};
-
-Map.prototype.put = function(key, value) {
-  if (!this.has(key))
-    this.size_++;
-  this.entries_[key] = value;
-  return this;
-};
-
-Map.prototype.remove = function(key) {
-  if (!this.has(key))
-    return false;
-  delete this.entries_[key];
-  this.size_--;
-  return true;
-};
-
-Map.prototype.get = function(key, optDefault) {
-  return this.has(key) ? this.entries_[key] : optDefault;
-};
-
-Map.prototype.has = function(key) {
-  return this.entries_.hasOwnProperty(key);
-};
-
-Map.prototype.isEmpty = function() {
-  return this.size_ == 0;
-};
-
-Map.prototype.toJSON = function() {
-  return this.entries_;
-};
-
-Map.prototype.forEach = function(thunk) {
-  for (var prop in this.entries_) {
-    if (this.has(prop))
-      thunk(prop, this.get(prop));
+export class Map {
+  constructor() {
+    this.entries_ = {};
+    this.size_ = 0;
   }
-};
 
-Map.wrap = function(object) {
-  var map = new Map();
-  for (var prop in object) {
-    if (object.hasOwnProperty(prop))
-      map.put(prop, object[prop]);
+  put(key, value) {
+    if (!this.has(key))
+      this.size_++;
+    this.entries_[key] = value;
+    return this;
   }
-  return map;
-};
+
+  remove(key) {
+    if (!this.has(key))
+      return false;
+    delete this.entries_[key];
+    this.size_--;
+    return true;
+  }
+
+  get(key, optDefault) {
+    return this.has(key) ? this.entries_[key] : optDefault;
+  }
+
+  has(key) {
+    return this.entries_.hasOwnProperty(key);
+  }
+
+  isEmpty() {
+    return this.size_ == 0;
+  }
+
+  toJSON() {
+    return this.entries_;
+  }
+
+  forEach(thunk) {
+    for (var prop in this.entries_) {
+      if (this.has(prop))
+        thunk(prop, this.get(prop));
+    }
+  }
+
+  static wrap(object) {
+    var map = new Map();
+    for (var prop in object) {
+      if (object.hasOwnProperty(prop))
+        map.put(prop, object[prop]);
+    }
+    return map;
+  }
+}
