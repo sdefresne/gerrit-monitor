@@ -35,14 +35,7 @@
   },
 
   "background": {
-    "persistent": false,
-    "scripts": [
-      "utils.js",
-      "config.js",
-      "browser.js",
-      "gerrit.js",
-      "messages.js",
-      "badge.js"
-    ]
+    "page": "background.html",
+    "persistent": false
   }
 }
