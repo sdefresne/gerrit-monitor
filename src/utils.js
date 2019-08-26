@@ -12,68 +12,57 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-(function(namespace) {
-
-  if (namespace.utils)
-    return;
-
-  var utils = {};
-  namespace.utils = utils;
-
-  // Implementation of a Map type.
-
-  function Map() {
+// Implementation of a Map type.
+export class Map {
+  constructor() {
     this.entries_ = {};
     this.size_ = 0;
-  };
+  }
 
-  Map.prototype.put = function(key, value) {
+  put(key, value) {
     if (!this.has(key))
       this.size_++;
     this.entries_[key] = value;
     return this;
-  };
+  }
 
-  Map.prototype.remove = function(key) {
+  remove(key) {
     if (!this.has(key))
       return false;
     delete this.entries_[key];
     this.size_--;
     return true;
-  };
+  }
 
-  Map.prototype.get = function(key, optDefault) {
+  get(key, optDefault) {
     return this.has(key) ? this.entries_[key] : optDefault;
-  };
+  }
 
-  Map.prototype.has = function(key) {
+  has(key) {
     return this.entries_.hasOwnProperty(key);
-  };
+  }
 
-  Map.prototype.isEmpty = function() {
+  isEmpty() {
     return this.size_ == 0;
-  };
+  }
 
-  Map.prototype.toJSON = function() {
+  toJSON() {
     return this.entries_;
-  };
+  }
 
-  Map.prototype.forEach = function(thunk) {
+  forEach(thunk) {
     for (var prop in this.entries_) {
       if (this.has(prop))
         thunk(prop, this.get(prop));
     }
-  };
+  }
 
-  Map.wrap = function(object) {
+  static wrap(object) {
     var map = new Map();
     for (var prop in object) {
       if (object.hasOwnProperty(prop))
         map.put(prop, object[prop]);
     }
     return map;
-  };
-
-  utils.Map = Map;
-
-})(this);
+  }
+}

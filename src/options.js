@@ -12,34 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-(function(namespace) {
+import * as browser from './browser.js';
+import * as config from './config.js';
+import * as dombuilder from './dombuilder.js';
+import * as gerrit from './gerrit.js';
 
-  if (namespace.options)
-    return;
-
-  // Option object.
-  function Options() {
+// Option object.
+export class Options {
+  constructor() {
     this.instances_ = [];
-  };
-
-  var options = new Options();
-  namespace.options = options;
+  }
 
   // Return the value for option.
-  Options.prototype.instances = function() {
+  instances() {
     return this.instances_;
-  };
+  }
 
   // Sets the status text (with a timeout).
-  Options.prototype.setStatusText = function(text, opt_timeout) {
+  setStatusText(text, opt_timeout) {
     browser.getElement('status').innerText = text;
     setTimeout(
         function() { browser.getElement('status').innerText = ''; },
         opt_timeout || 350);
-  };
+  }
 
   // Add a new Gerrit instance, or enable the instance if it already exists.
-  Options.prototype.addGerritInstance = function(host, name, enabled) {
+  addGerritInstance(host, name, enabled) {
     for (var i = 0; i < this.instances_.length; i++) {
       var instance = this.instances_[i];
       if (instance.host === host) {
@@ -87,20 +85,20 @@
 
     labels.forEach(function(node) {
       node.setAttribute('for', 'instance-' + instance_index);
-    })
-  };
+    });
+  }
 
   // Restore the options from Chrome storage and update the option page.
-  Options.prototype.loadOptions = function() {
+  loadOptions() {
     return gerrit.fetchAllInstances().then((function(instances) {
       instances.forEach((function(instance) {
         this.addGerritInstance(instance.host, instance.name, instance.enabled);
       }).bind(this));
     }).bind(this));
-  };
+  }
 
   // Save the options to Chrome storage and update permissions.
-  Options.prototype.saveOptions = function() {
+  saveOptions() {
     var origins = [];
     var options = { instances: this.instances_ };
     this.instances_.forEach(function(instance) {
@@ -112,26 +110,26 @@
       }
     });
     return browser.setAllowedOrigins(origins)
-      .then(function() {
+      .then(function () {
         return browser.saveOptions(options);
       })
-      .then((function() {
+      .then((function () {
         this.setStatusText('Options saved.');
       }).bind(this))
-      .catch((function(error) {
+      .catch((function (error) {
         this.setStatusText(String(error));
       }).bind(this));
-  };
+  }
 
   // Main method.
-  Options.prototype.onLoaded = function() {
+  onLoaded() {
     this.loadOptions();
 
     browser.getElement('add-button-name').pattern = '.+';
     browser.getElement('add-button-host').pattern = config.ORIGIN_PATTERN;
-    browser.getElement('add-button').addEventListener('click', (function() {
+    browser.getElement('add-button').addEventListener('click', (function () {
       var host = browser.getElement('add-button-host').value;
-      var name = browser.getElement('add-button-name').value
+      var name = browser.getElement('add-button-name').value;
 
       var match = config.ORIGIN_REGEXP.exec(host);
       var host_is_valid = match !== null && match[0].length == host.length;
@@ -144,12 +142,14 @@
       }
     }).bind(this));
 
-    browser.getElement('save-button').addEventListener('click', (function() {
+    browser.getElement('save-button').addEventListener('click', (function () {
       this.saveOptions();
     }).bind(this));
-  };
+  }
+}
 
-  // Called to initialize the options page.
-  browser.callWhenLoaded(function () { options.onLoaded(); });
+// Singleton Options object.
+export var options = new Options();
 
-})(this);
+// Called to initialize the options page.
+browser.callWhenLoaded(function () { options.onLoaded(); });

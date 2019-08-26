@@ -12,22 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-(function(namespace) {
+import * as browser from './browser.js';
+import * as utils from './utils.js';
 
-  if (namespace.dombuilder)
-    return;
-
-  var dombuilder = {};
-  namespace.dombuilder = dombuilder;
-
-  // Represents an image set.
-  function ImageSet(icon) {
+// Represents an image set.
+export class ImageSet {
+  constructor(icon) {
     this.icon_ = utils.Map.wrap(icon);
     this.size_ = null;
   }
 
   // Returns the size of the smallest image in the set.
-  ImageSet.prototype.getBaseSize = function() {
+  getBaseSize() {
     if (this.size_ === null) {
       var keys = [];
       this.icon_.forEach(function(key, value) {
@@ -37,15 +33,15 @@
       this.size_ = keys[0];
     }
     return this.size_;
-  };
+  }
 
   // Returns the default image in the set.
-  ImageSet.prototype.getDefaultImage = function() {
+  getDefaultImage() {
     return this.icon_.get(this.getBaseSize());
-  };
+  }
 
   // Returns the source set for the additional images.
-  ImageSet.prototype.getExtraImageSet = function() {
+  getExtraImageSet() {
     var srcset = '';
     var baseSize = this.getBaseSize();
     this.icon_.forEach(function(key, value) {
@@ -58,83 +54,82 @@
     });
     return srcset;
   }
+}
 
-  // Quick and dirty DOM construction framework.
-  function DomBuilder(parent) {
+// Quick and dirty DOM construction framework.
+export class DomBuilder {
+  constructor(parent) {
     this.stack = [parent];
     this.current = parent;
   }
 
   // Returns a new DOM builder that attaches to the given element.
-  DomBuilder.attach = function(element) {
+  static attach(element) {
     return new DomBuilder(element);
-  };
+  }
 
   // Begins a new element with the given tag name, attaching it
   // to the current element.
-  DomBuilder.prototype.begin = function(tagName) {
+  begin(tagName) {
     var element = browser.createElement(tagName);
     this.current.appendChild(element);
     this.stack.push(element);
     this.current = element;
     return this;
-  };
+  }
 
   // Appends a string to the current element.
-  DomBuilder.prototype.appendText = function(str) {
+  appendText(str) {
     this.current.appendChild(browser.createTextNode(str));
     return this;
-  };
+  }
 
   // Sets the 'src' and 'srcset' attributes from an 'icon' object.
-  DomBuilder.prototype.setImageSet = function(icon) {
+  setImageSet(icon) {
     var iconset = new ImageSet(icon);
     this.setAttribute('src', iconset.getDefaultImage());
     this.setAttribute('srcset', iconset.getExtraImageSet());
     return this;
-  };
+  }
 
   // Sets an attibute on the current element.
-  DomBuilder.prototype.setAttribute = function(name, value) {
+  setAttribute(name, value) {
     this.current[name] = value;
     return this;
-  };
+  }
 
   // Adds a CSS class name to the current element.
-  DomBuilder.prototype.addClass = function(name) {
+  addClass(name) {
     if (this.current.className) {
       this.current.className += ' ' + name;
     } else {
       this.current.className = name;
     }
     return this;
-  };
+  }
 
   // Invokes the given thunk for each element in the collection, passing
   // the element, this builder, and the index of the element. Useful for
   // building subtrees of variable length.
-  DomBuilder.prototype.forEach = function(elements, thunk) {
+  forEach(elements, thunk) {
     var index = 0;
     elements.forEach((function(element) {
       thunk(element, this, index++);
     }).bind(this));
     return this;
-  };
+  }
 
   // Invokes the given thunk with the current node.
-  DomBuilder.prototype.withCurrentNode = function(thunk) {
+  withCurrentNode(thunk) {
     thunk(this.current);
     return this;
-  };
+  }
 
   // Ends the current element and replaces it as the current with
   // its parent.
-  DomBuilder.prototype.end = function() {
+  end() {
     this.stack.pop();
     this.current = this.stack[this.stack.length - 1];
     return this;
-  };
-
-  dombuilder.DomBuilder = DomBuilder;
-
-})(this);
+  }
+}

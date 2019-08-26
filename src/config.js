@@ -12,41 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-(function(namespace) {
+// Pattern matching a valid origin (protocol, host, port) supported by
+// the extension.
+export const ORIGIN_PATTERN = "(https?://[^/]*)(/[^/]+)*";
+export const ORIGIN_REGEXP = new RegExp('^' + ORIGIN_PATTERN);
 
-  if (namespace.config)
-    return;
+// Login prompt.
+export const LOGIN_PROMPT = ' Try logging in.';
 
-  var config = {};
-  namespace.config = config;
+// Missing configuration.
+export const NO_HOST_ALLOWED = 'No host configured.';
 
-  // Pattern matching a valid origin (protocol, host, port) supported by
-  // the extension.
-  config.ORIGIN_PATTERN = "(https?://[^/]*)(/[^/]+)*";
-  config.ORIGIN_REGEXP = new RegExp('^' + config.ORIGIN_PATTERN);
+// Delay between automatic refresh of the badge data.
+export const REFRESH_DELAY_IN_MINUTES = 5;
 
-  // Login prompt.
-  config.LOGIN_PROMPT = ' Try logging in.';
-
-  // Missing configuration.
-  config.NO_HOST_ALLOWED = 'No host configured.';
-
-  // Delay between automatic refresh of the badge data.
-  config.REFRESH_DELAY_IN_MINUTES = 5;
-
-  // Default options.
-  config.DEFAULT_OPTIONS = {
-    // URL of the gerrit instance to monitor.
-    instances: [{
-      name: 'Chromium',
-      host: 'https://chromium-review.googlesource.com',
-      enabled: false,
-    },
-    {
-      name: 'Fuchsia',
-      host: 'https://fuchsia-review.googlesource.com',
-      enabled: false,
-    }],
-  };
-
-})(this);
+// Default options.
+export const DEFAULT_OPTIONS = {
+  // URL of the gerrit instance to monitor.
+  instances: [{
+    name: 'Chromium',
+    host: 'https://chromium-review.googlesource.com',
+    enabled: false,
+  },
+  {
+    name: 'Fuchsia',
+    host: 'https://fuchsia-review.googlesource.com',
+    enabled: false,
+  }],
+};
