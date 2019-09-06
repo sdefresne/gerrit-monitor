@@ -211,43 +211,45 @@ class ChangelistWidget {
 }
 
 // Renders the main widget as part of the DOM.
-function renderWidget(widget) {
+function renderWidget(widget, errors) {
   if (widget.getSections().length === 0) {
     setOverlayText(messages.NO_CLS_MESSAGE + '.');
     setOverlayVisible(true);
+    browser.getElement('results').style.display = 'none';
   } else {
     widget.render(dombuilder.DomBuilder.attach(
         browser.getElement('results')));
-    setOverlayVisible(false);
+    browser.getElement('results').style.display = null;
   }
 };
 
-// Does almost all the work of rendering the popup: fetches data, process
-// it appropriately, constructs the widgets. The only thing it doesn't do
-// is render the widget on the DOM.
-function getMainWidget() {
+// Fetch data from the servers, then display the popup.
+function displayPopup() {
+  // Update the badge to show a loading state.
   browser.displayLoading();
+
+  // Fetch the data from the servers, and then display the popup. The
+  // promise returned by getSearchResults() is only rejected if there
+  // are no servers configured, so deal appropriately with the error.
   return getSearchResults()
-    .then(PopupWidget.create);
-};
+    .then(function(wrapper) {
+      if (wrapper.results !== undefined)
+        renderWidget(PopupWidget.create(wrapper.results));
 
-// Shows the given error message. If the error message asks the user to
-// login or refresh cookies, the login link will be shown too.
-function displayError(error) {
-  var error_string = String(error);
-
-  setOverlayText(error_string);
-  setOverlayVisible(true);
-
-  // Presents a button to log into all configured gerrit instances.
-  setLogginButtonVisible(
-      error_string.includes(config.LOGIN_PROMPT),
-      undefined);
-
-  // Presents a button to grant permissions if required.
-  setGrantPermissionsButtonVisible(
-      error_string.includes(config.NO_HOST_ALLOWED));
-};
+      if (wrapper.errors.length !== 0) {
+        setLogginButtonVisible(
+          wrapper.errors[0].error,
+          wrapper.errors.map(function(error) {
+            return error.host;
+          }));
+      } else {
+        setOverlayVisible(false);
+      }
+    })
+    .catch(function(error) {
+      setGrantPermissionsButtonVisible(String(error));
+    });
+}
 
 // Sets the message text of the overlay panel.
 function setOverlayText(value) {
@@ -258,43 +260,38 @@ function setOverlayText(value) {
 // will be hidden together with the overlay.
 function setOverlayVisible(visible) {
   setElementVisibility('overlay', visible);
-  setElementVisibility('results', !visible);
-  if (!visible) {
-    setGrantPermissionsButtonVisible(false);
-    setLoginLinkVisible(false);
-  }
 };
 
 // Toggles visibility of the login button in the overlay. Requires the
 // overlay to be visible as well. If limit_to_those_hosts is defined,
 // then it can be used to restrict the button to only open a subset of
 // the hosts.
-function setLogginButtonVisible(visible, limit_to_those_hosts) {
-  setElementVisibility('login', visible);
-  if (visible) {
-    var button = browser.getElement('login-button');
-    button.addEventListener('click', function() {
-      gerrit.fetchAllowedInstances().then(function(instances) {
-        instances.forEach(function (instance) {
-          var host = instance.host;
-          if (!limit_to_those_hosts || limit_to_those_hosts.indexOf(host) != -1)
-            browser.openUrl(host + '/dashboard/self', false);
-        });
+function setLogginButtonVisible(overlay_text, limit_to_those_hosts) {
+  setOverlayText(overlay_text);
+  setElementVisibility('login', true);
+
+  var button = browser.getElement('login-button');
+  button.addEventListener('click', function() {
+    gerrit.fetchAllowedInstances().then(function(instances) {
+      instances.forEach(function (instance) {
+        var host = instance.host;
+        if (!limit_to_those_hosts || limit_to_those_hosts.indexOf(host) != -1)
+          browser.openUrl(host + '/dashboard/self', false);
       });
-    })
-  }
+    });
+  });
 };
 
 // Presents a button to allow user to grant permissions to access the gerrit
 // host (should eventually move to the configuration page).
-function setGrantPermissionsButtonVisible(visible) {
-  setElementVisibility('permissions', visible);
-  if (visible) {
-    var button = browser.getElement('permissions-button');
-    button.addEventListener('click', function() {
-      browser.openOptionsPage();
-    });
-  }
+function setGrantPermissionsButtonVisible(overlay_text) {
+  setOverlayText(overlay_text);
+  setElementVisibility('permissions', true);
+
+  var button = browser.getElement('permissions-button');
+  button.addEventListener('click', function() {
+    browser.openOptionsPage();
+  });
 };
 
 // Configure the visibility of the element with the given identitifer.
@@ -307,21 +304,27 @@ function getSearchResults() {
   return gerrit.fetchAllowedInstances().then(function(instances) {
     var hosts = instances.map(function(instance) { return instance.host; });
     return comm.sendMessage('getSearchResults', hosts)
-      .then(function(results) {
-        return Promise.resolve(new gerrit.SearchResults(results.map(
-          function(result) {
-            return gerrit.SearchResult.wrap(
-              result.host, result.user, result.data);
-          })));
+      .then(function(wrapper) {
+        var results = undefined;
+        if (wrapper.results.length !== 0) {
+          results = new gerrit.SearchResults(wrapper.results.map(
+            function(result) {
+              return gerrit.SearchResult.wrap(
+                result.host, result.user, result.data);
+            }));
+        }
+
+        return Promise.resolve({
+          results: results,
+          errors: wrapper.errors
+        });
       });
   });
 };
 
 // Main method.
 function onLoaded() {
-  getMainWidget()
-    .then(renderWidget)
-    .catch(displayError);
+  displayPopup();
 };
 
 // Called to initialize the popup.

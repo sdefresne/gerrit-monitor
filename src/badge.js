@@ -20,13 +20,30 @@ import * as messages from './messages.js';
 // Fetches information about interesting CLs and update the badge.
 function fetchAndUpdate(hosts, detailed) {
   return fetchCls(hosts, detailed)
-    .then(function(results) {
-      update({results: results});
-      return Promise.resolve(results);
-    })
-    .catch(function(error) {
-      update({error: error});
-      return Promise.reject(error);
+    .then(function(promises) {
+      let fullfilled = promises
+        .filter(function(promise) {
+          return promise.status === "fulfilled";
+        })
+        .map(function(promise) {
+          return promise.value;
+        });
+
+      let rejected = promises
+        .filter(function(promise) {
+          return promise.status !== "fulfilled";
+        })
+        .map(function(promise) {
+          return {
+            host: promise.reason.host,
+            error: promise.reason.error.message,
+          }
+        });
+
+      return update({
+        results: new gerrit.SearchResults(fullfilled),
+        errors: rejected,
+      });
     });
 };
 
@@ -36,18 +53,22 @@ function fetchCls(hosts, detailed) {
     return Promise.reject(new Error(config.NO_HOST_ALLOWED));
   }
 
-  return Promise.all(hosts.map(function(host) {
+  return Promise.allSettled(hosts.map(function(host) {
     return gerrit.fetchAccount(host)
         .then(function(account) {
           return gerrit.fetchReviews(host, account, detailed);
+        })
+        .catch(function(error) {
+          return Promise.reject({
+            host: host,
+            error: error,
+          });
         });
-  })).then(function(results) {
-    return Promise.resolve(new gerrit.SearchResults(results));
-  });
+  }));
 };
 
 // Updates the badge.
-function update(values) {
+function update(wrapper) {
   // Re-schedule the function to be called later, cancelling any pending
   // alarm (as this is called when the user open the popup menu).
   chrome.alarms.clear('auto-refresh');
@@ -56,18 +77,18 @@ function update(values) {
   });
 
   var updateData = null;
-  if (values.hasOwnProperty('error')) {
+  if (wrapper.errors.length !== 0) {
     updateData = {
       text: '!',
       color: 'red',
-      title: 'Error: ' + String(values.error),
+      title: 'Error: ' + wrapper.errors[0].error,
       icon: {
         '24': 'img/ic_assignment_late_black_24dp_1x.png',
         '48': 'img/ic_assignment_late_black_24dp_2x.png',
       },
     };
   } else {
-    var categories = values.results.getCategoryMap();
+    var categories = wrapper.results.getCategoryMap();
     messages.SECTION_ORDERING.forEach(function(attention) {
       if (updateData != null)
         return;
@@ -93,6 +114,7 @@ function update(values) {
     updateData = messages.DEFAULT_BADGE_DATA;
 
   browser.updateBadge(updateData);
+  return Promise.resolve(wrapper);
 };
 
 // Automatically refresh the badge.
