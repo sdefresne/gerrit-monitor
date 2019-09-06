@@ -146,7 +146,7 @@ class ChangelistWidget {
   // Configure click event on the table row.
   setHeader(node) {
     node.addEventListener('click', (function () {
-      browser.openUrl(this.getGerritUrl());
+      browser.openUrl(this.getGerritUrl(), true);
     }).bind(this));
   }
 
@@ -239,9 +239,10 @@ function displayError(error) {
   setOverlayText(error_string);
   setOverlayVisible(true);
 
-  // Presents a link to gerrit host if required.
-  setLoginLinkVisible(
-      error_string.includes(config.LOGIN_PROMPT));
+  // Presents a button to log into all configured gerrit instances.
+  setLogginButtonVisible(
+      error_string.includes(config.LOGIN_PROMPT),
+      undefined);
 
   // Presents a button to grant permissions if required.
   setGrantPermissionsButtonVisible(
@@ -256,46 +257,32 @@ function setOverlayText(value) {
 // Toggles visibility of the overlay panel. The login link, if visible,
 // will be hidden together with the overlay.
 function setOverlayVisible(visible) {
-  if (visible) {
-    browser.getElement('overlay').style.display = null;
-    browser.getElement('results').style.display = 'none';
-  } else {
-    browser.getElement('overlay').style.display = 'none';
-    browser.getElement('results').style.display = null;
+  setElementVisibility('overlay', visible);
+  setElementVisibility('results', !visible);
+  if (!visible) {
     setGrantPermissionsButtonVisible(false);
     setLoginLinkVisible(false);
   }
 };
 
-// Toggles visibility of the login link in the overlay. Requires the
-// overlay to be visible as well.
-function setLoginLinkVisible(visible) {
+// Toggles visibility of the login button in the overlay. Requires the
+// overlay to be visible as well. If limit_to_those_hosts is defined,
+// then it can be used to restrict the button to only open a subset of
+// the hosts.
+function setLogginButtonVisible(visible, limit_to_those_hosts) {
   setElementVisibility('login', visible);
-  if (!visible) {
-    return;
+  if (visible) {
+    var button = browser.getElement('login-button');
+    button.addEventListener('click', function() {
+      gerrit.fetchAllowedInstances().then(function(instances) {
+        instances.forEach(function (instance) {
+          var host = instance.host;
+          if (!limit_to_those_hosts || limit_to_those_hosts.indexOf(host) != -1)
+            browser.openUrl(host + '/dashboard/self', false);
+        });
+      });
+    })
   }
-
-  var login = browser.getElement('login');
-  while (login.firstChild) {
-    login.removeChild(login.firstChild);
-  }
-
-  gerrit.fetchAllowedInstances()
-    .then(function(instances) {
-      dombuilder.DomBuilder.attach(login)
-        .begin('div')
-          .forEach(instances, function(instance, builder, index) {
-            builder
-              .begin('a')
-                .setAttribute('target', '_blank')
-                .setAttribute('href', instance.host)
-                .appendText(instance.name)
-              .end('a')
-              .begin('br')
-              .end('br')
-          })
-        .end('div')
-    });
 };
 
 // Presents a button to allow user to grant permissions to access the gerrit

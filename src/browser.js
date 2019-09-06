@@ -123,10 +123,10 @@ export function callWhenLoaded(thunk) {
 
 // Open a new tab displaying the given url, or activate the first
 // tab displaying the given url if one exists.
-export function openUrl(url) {
+export function openUrl(url, reuse_if_possible) {
   chrome.windows.getLastFocused({ populate: true }, function(currentWindow) {
     var candidates = currentWindow.tabs.filter(function(tab) {
-      return tab.url == url;
+      return tab.url == url && reuse_if_possible == true;
     });
 
     if (candidates.length == 0) {
