@@ -210,19 +210,6 @@ class ChangelistWidget {
   }
 }
 
-// Renders the main widget as part of the DOM.
-function renderWidget(widget, errors) {
-  if (widget.getSections().length === 0) {
-    setOverlayText(messages.NO_CLS_MESSAGE + '.');
-    setOverlayVisible(true);
-    browser.getElement('results').style.display = 'none';
-  } else {
-    widget.render(dombuilder.DomBuilder.attach(
-        browser.getElement('results')));
-    browser.getElement('results').style.display = null;
-  }
-};
-
 // Fetch data from the servers, then display the popup.
 function displayPopup() {
   // Update the badge to show a loading state.
@@ -233,8 +220,19 @@ function displayPopup() {
   // are no servers configured, so deal appropriately with the error.
   return getSearchResults()
     .then(function(wrapper) {
-      if (wrapper.results !== undefined)
-        renderWidget(PopupWidget.create(wrapper.results));
+      var hideOverlay = false;
+      if (wrapper.results !== undefined) {
+        var widget = PopupWidget.create(wrapper.results);
+        if (widget.getSections().length === 0) {
+          setOverlayText(messages.NO_CLS_MESSAGE + '.');
+          setElementVisibility('results', false);
+        } else {
+          widget.render(dombuilder.DomBuilder.attach(
+              browser.getElement('results')));
+          setElementVisibility('results', true);
+          hideOverlay = true;
+        }
+      }
 
       if (wrapper.errors.length !== 0) {
         setLogginButtonVisible(
@@ -242,9 +240,10 @@ function displayPopup() {
           wrapper.errors.map(function(error) {
             return error.host;
           }));
-      } else {
-        setOverlayVisible(false);
+        hideOverlay = false;
       }
+
+      setOverlayVisible(!hideOverlay);
     })
     .catch(function(error) {
       setGrantPermissionsButtonVisible(String(error));
