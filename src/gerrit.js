@@ -472,7 +472,7 @@ export function fetchReviews(host, account, detailed) {
   var params = [];
   var userid = account._account_id;
   params.push(['q', 'status:open owner:' + userid]);
-  params.push(['q', 'status:open -is:ignored reviewer:' + userid + ' -owner:' + userid]);
+  params.push(['q', 'status:open -star:ignore reviewer:' + userid + ' -owner:' + userid]);
   params.push(['o', 'DETAILED_LABELS']);
   params.push(['o', 'REVIEWED']);
   params.push(['o', 'SUBMITTABLE']);
