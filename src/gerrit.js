@@ -89,6 +89,11 @@ export class Changelist {
     return this.json_.unresolved_comment_count !== 0;
   }
 
+  // Returns whether the CL is labeled 'work in progress'.
+  isWorkInProgress() {
+    return this.json_.work_in_progress === true;
+  }
+
   // Returns the number of lines changed by this CL.
   getDeltaSize() {
     return this.json_.insertions + this.json_.deletions;
@@ -164,8 +169,11 @@ export class Changelist {
       if (this.isSubmittable() && !this.hasUnresolvedComments())
         return Changelist.READY_TO_SUBMIT;
 
+      if (this.isWorkInProgress())
+        return Changelist.WIP;
+
       if (this.getReviewers().length == 0)
-        return Changelist.NOT_MAILED;
+        return Changelist.NO_REVIEWERS;
 
       if (this.hasUnresolvedComments())
         return Changelist.OUTGOING_NEEDS_ATTENTION;
@@ -249,7 +257,10 @@ Changelist.NONE = 'none';
 Changelist.STALE = 'stale';
 
 // The CL has not been sent for review yet.
-Changelist.NOT_MAILED = 'not_mailed';
+Changelist.NO_REVIEWERS = 'no_reviewers';
+
+// The CL is labeled 'work in progress'.
+Changelist.WIP = 'work_in_progress';
 
 // Someone else is waiting for this user to review the CL.
 Changelist.INCOMING_NEEDS_ATTENTION = 'incoming_needs_attention';
