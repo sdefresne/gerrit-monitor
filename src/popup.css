@@ -64,7 +64,11 @@ table {
   background: #00796b;
 }
 
-.notMailed > .sectionheader {
+.noReviewers > .sectionheader {
+  background: #bdbdbd;
+}
+
+.workInProgress > .sectionheader {
   background: #bdbdbd;
 }
 
@@ -104,8 +108,8 @@ table {
   text-overflow: ellipsis;
 }
 
-.approved .author, .notMailed .author, .outgoingRequiringAttention .author,
-.stale .author {
+.approved .author, .noReviewers .author, .outgoingRequiringAttention .author,
+.stale .author, .workInProgress .author {
   display: none;
 }
 

@@ -44,10 +44,17 @@ POPUP_SECTION_DATA[gerrit.Changelist.READY_TO_SUBMIT] = {
   },
 };
 
-POPUP_SECTION_DATA[gerrit.Changelist.NOT_MAILED] = {
-  className: 'notMailed',
+POPUP_SECTION_DATA[gerrit.Changelist.WIP] = {
+  className: 'workInProgress',
   formatHeader: function(count) {
-    return 'Your ' + pluralizedCl(count) + ' not mailed for review';
+    return 'Your work in progress ' + pluralizedCl(count);
+  },
+};
+
+POPUP_SECTION_DATA[gerrit.Changelist.NO_REVIEWERS] = {
+  className: 'noReviewers',
+  formatHeader: function(count) {
+    return 'Your ' + pluralizedCl(count) + ' with no assigned reviewers';
   },
 };
 
@@ -80,7 +87,7 @@ BADGE_DATA[gerrit.Changelist.OUTGOING_NEEDS_ATTENTION] = {
   },
   color: '#4d2c91',
   formatTitle: function(count) {
-    return count + ' of your CLs requiring your attention';
+    return count + ' of your ' + pluralizedCl(count) + ' requiring your attention';
   },
 };
 
@@ -91,7 +98,7 @@ BADGE_DATA[gerrit.Changelist.READY_TO_SUBMIT] = {
   },
   color: '#004c40',
   formatTitle: function(count) {
-    return count + ' of your CLs ready to submit';
+    return count + ' of your ' + pluralizedCl(count) + ' ready to submit';
   },
 };
 
@@ -102,18 +109,29 @@ BADGE_DATA[gerrit.Changelist.STALE] = {
   },
   color: '#004ba0',
   formatTitle: function(count) {
-    return count + ' of your stale CLs';
+    return count + ' of your stale ' + pluralizedCl(count);
   },
 };
 
-BADGE_DATA[gerrit.Changelist.NOT_MAILED] = {
+BADGE_DATA[gerrit.Changelist.NO_REVIEWERS] = {
   icon: {
-    '24': 'img/ic_assignment_not_mailed_24dp_1x.png',
-    '48': 'img/ic_assignment_not_mailed_24dp_2x.png',
+    '24': 'img/ic_assignment_not_ready_24dp_1x.png',
+    '48': 'img/ic_assignment_not_ready_24dp_2x.png',
   },
   color: '#8d8d8d',
   formatTitle: function(count) {
-    return count + ' of your CLs not sent for review';
+    return count + ' of your ' + pluralizedCl(count) + ' not assigned reviewers';
+  },
+};
+
+BADGE_DATA[gerrit.Changelist.WIP] = {
+  icon: {
+    '24': 'img/ic_assignment_not_ready_24dp_1x.png',
+    '48': 'img/ic_assignment_not_ready_24dp_2x.png',
+  },
+  color: '#8d8d8d',
+  formatTitle: function(count) {
+    return count + ' of your work in progress ' + pluralizedCl(count);
   },
 };
 
@@ -144,5 +162,6 @@ export const SECTION_ORDERING = [
   gerrit.Changelist.OUTGOING_NEEDS_ATTENTION,
   gerrit.Changelist.READY_TO_SUBMIT,
   gerrit.Changelist.STALE,
-  gerrit.Changelist.NOT_MAILED,
+  gerrit.Changelist.NO_REVIEWERS,
+  gerrit.Changelist.WIP,
 ];
