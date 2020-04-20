@@ -22,25 +22,27 @@
     <link rel="stylesheet" href="options.css">
   </head>
   <body>
-    <div>
-      <table id="instances">
+
+    <table>
+      <thead>
         <tr>
-          <td>
-            <input id="add-button-name" type="text" placeholder="Instance name">
-          </td>
-          <td>
-            <input id="add-button-host" type="text" placeholder="Instance URL">
-          </td>
-          <td>
-            <button id="add-button">Add</button>
-          </td>
+          <td>Instance</td>
+          <td>URL</td>
+          <td>Enabled?</td>
         </tr>
-      </table>
+      </thead>
+      <tbody id="instances">
+      </tbody>
+    </table>
+
+    <div class="right-aligned">
+      <input id="add-button-name" type="text" placeholder="Instance name">
+      <input id="add-button-host" type="text" placeholder="Instance URL">
+      <button id="add-button">Add</button>
     </div>
 
-    <div>
+    <div class="right-aligned">
       <button id="save-button" style="">Save</button>
-      <span id="status"></span>
     </div>
 
   </body>

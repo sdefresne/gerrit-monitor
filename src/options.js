@@ -70,6 +70,7 @@ export class Options {
           .end('label')
         .end('td')
         .begin('td')
+          .addClass('center-aligned')
           .begin('input')
             .setAttribute('type', 'checkbox')
             .setAttribute('id', 'instance-' + instance_index)

@@ -16,16 +16,31 @@
 
 body {
   overflow-y: scroll;
+  margin: 0 10px 10px 10px;
 }
 
-div > div {
-  padding: 5px 0;
+table {
+  width: 100%;
 }
 
-input:invalid {
-  color: inherit;
+div {
+  margin-top: 10px;
 }
 
 input:invalid {
   color: red;
+}
+
+.right-aligned {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.right-aligned input {
+  width: 100%;
+  margin-right: 10px;
+}
+
+.center-aligned {
+  text-align: center
 }
