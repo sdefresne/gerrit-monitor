@@ -67,6 +67,7 @@ export class Changelist {
     this.description_ = null;
     this.reviewers_ = null;
     this.messages_ = null;
+    this.current_revision_ = null;
   }
 
   // Returns the underlying json data.
@@ -185,6 +186,33 @@ export class Changelist {
     }
 
     if (!this.hasReviewed(user)) {
+      // Check if the latest CL revision is explicitly marked as reviewed or
+      // unreviewed.
+      var current_rev_number = this.getCurrentRevision().getNumber();
+      var latest_tagged_rev_number = -1;
+      var latest_tag_is_reviewed = null;
+      for (const star_label of this.getStars()) {
+        if (star_label.startsWith('reviewed/')) {
+          var reviewed_number = parseInt(star_label.substring(9));
+          if (reviewed_number > latest_tagged_rev_number) {
+            latest_tagged_rev_number = reviewed_number;
+            latest_tag_is_reviewed = true;
+          }
+        } else if (star_label.startsWith('unreviewed/')) {
+          var unreviewed_number = parseInt(star_label.substring(11));
+          if (unreviewed_number > latest_tagged_rev_number) {
+            latest_tagged_rev_number = unreviewed_number;
+            latest_tag_is_reviewed = false;
+          }
+        }
+      }
+      if (latest_tagged_rev_number == current_rev_number) {
+        if (latest_tag_is_reviewed)
+          return Changelist.NONE;
+        else
+          return Changelist.INCOMING_NEEDS_ATTENTION;
+      }
+
       // The heuristic used to determine how to categorize the message is weak
       // because it is not possible to retrieve all the comments using the API
       // of Gerrit. So, ignore the has_unresolved_comments if the user left a
@@ -192,8 +220,8 @@ export class Changelist {
       if (this.authorCommentedAfterUser(user))
         return Changelist.INCOMING_NEEDS_ATTENTION;
 
-      return Changelist.NONE;
-    }
+        return Changelist.NONE;
+      }
 
     return Changelist.NONE;
   }
@@ -229,13 +257,29 @@ export class Changelist {
     return this.json_.owner.name;
   }
 
+  // Returns the list of stars labels of this CL.
+  getStars() {
+    return this.json_.stars;
+  }
+
+  // Returns the current revision (aka patchset) of this CL.
+  //
+  // Requires detailed information (see fetchReviews).
+  getCurrentRevision() {
+    if (this.current_revision_ === null) {
+      this.current_revision_ = new Revision(
+          this.json_.revisions[this.json_.current_revision]);
+    }
+    return this.current_revision_;
+  }
+
   // Returns the CL description.
   //
   // Requires detailed information (see fetchReviews).
   getDescription() {
     if (this.description_ === null) {
       this.description_ = new Description(
-          this.json_.revisions[this.json_.current_revision].commit.message);
+          this.getCurrentRevision().toJSON().commit.message);
     }
     return this.description_;
   }
@@ -270,6 +314,25 @@ Changelist.OUTGOING_NEEDS_ATTENTION = 'outgoign_needs_attention';
 
 // This CL is full approved, the author can submit.
 Changelist.READY_TO_SUBMIT = 'ready_to_submit';
+
+// Wrapper around a changelist's revision (aka patchset).
+export class Revision {
+  constructor(json) {
+    this.json_ = json;
+  }
+
+  // Returns the underlying json data.
+  toJSON() {
+    return this.json_;
+  }
+
+  // Returns index of this revision.
+  //
+  // Requires detailed information (see fetchReviews).
+  getNumber() {
+    return this.json_._number;
+  }
+}
 
 // Wrapper around a changelist description.
 export class Description {
