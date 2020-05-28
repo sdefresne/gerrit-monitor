@@ -192,19 +192,16 @@ export class Changelist {
       var latest_tagged_rev_number = -1;
       var latest_tag_is_reviewed = null;
       for (const star_label of this.getStars()) {
-        if (star_label.startsWith('reviewed/')) {
-          var reviewed_number = parseInt(star_label.substring(9));
-          if (reviewed_number > latest_tagged_rev_number) {
-            latest_tagged_rev_number = reviewed_number;
-            latest_tag_is_reviewed = true;
-          }
-        } else if (star_label.startsWith('unreviewed/')) {
-          var unreviewed_number = parseInt(star_label.substring(11));
-          if (unreviewed_number > latest_tagged_rev_number) {
-            latest_tagged_rev_number = unreviewed_number;
-            latest_tag_is_reviewed = false;
-          }
-        }
+        var parts = star_label.split('/');
+        if (parts.length != 2)
+          continue;
+        if (parts[0] != "reviewed" && parts[0] != "unreviewed")
+          continue;
+        var tagged_rev_number = parseInt(parts[1]);
+        if (tagged_rev_number <= latest_tagged_rev_number)
+          continue;
+        latest_tagged_rev_number = tagged_rev_number;
+        latest_tag_is_reviewed = parts[0] == "reviewed";
       }
       if (latest_tagged_rev_number == current_rev_number) {
         if (latest_tag_is_reviewed)
@@ -257,9 +254,12 @@ export class Changelist {
     return this.json_.owner.name;
   }
 
-  // Returns the list of stars labels of this CL.
+  // Returns the list of stars labels of this CL or an empty list if doesn't
+  // contain that field.
   getStars() {
-    return this.json_.stars;
+    if ('stars' in this.json_)
+      return this.json_.stars;
+    return [];
   }
 
   // Returns the current revision (aka patchset) of this CL.
