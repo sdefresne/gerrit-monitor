@@ -263,8 +263,6 @@ export class Changelist {
   }
 
   // Returns the current revision (aka patchset) of this CL.
-  //
-  // Requires detailed information (see fetchReviews).
   getCurrentRevision() {
     if (this.current_revision_ === null) {
       this.current_revision_ = new Revision(
@@ -327,8 +325,6 @@ export class Revision {
   }
 
   // Returns index of this revision.
-  //
-  // Requires detailed information (see fetchReviews).
   getNumber() {
     return this.json_._number;
   }
@@ -547,14 +543,14 @@ export function fetchReviews(host, account, detailed) {
   var userid = account._account_id;
   params.push(['q', 'status:open owner:' + userid]);
   params.push(['q', 'status:open -star:ignore reviewer:' + userid + ' -owner:' + userid]);
+  params.push(['o', 'CURRENT_REVISION']);
   params.push(['o', 'DETAILED_LABELS']);
+  params.push(['o', 'MESSAGES']);
   params.push(['o', 'REVIEWED']);
   params.push(['o', 'SUBMITTABLE']);
-  params.push(['o', 'MESSAGES']);
   if (detailed) {
-    params.push(['o', 'DETAILED_ACCOUNTS']);
-    params.push(['o', 'CURRENT_REVISION']);
     params.push(['o', 'CURRENT_COMMIT']);
+    params.push(['o', 'DETAILED_ACCOUNTS']);
   }
   return sendRequest(host, '/changes/', params)
     .then(parseJSON)
