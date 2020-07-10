@@ -12,7 +12,8 @@
 
   "permissions": [
     "alarms",
-    "storage"
+    "storage",
+    "tabs"
   ],
 
   "optional_permissions": [
