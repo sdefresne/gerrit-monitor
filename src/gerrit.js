@@ -228,6 +228,11 @@ export class Changelist {
     return this.host_ + '/c/' + this.json_.project + '/+/' + this.json_._number;
   }
 
+  // Get the change ID.
+  getChangeId() {
+    return this.json_.id;
+  }
+
   // Returns the list of reviewers for this CL.
   getReviewers() {
     if (this.reviewers_ === null) {
@@ -269,6 +274,11 @@ export class Changelist {
           this.json_.revisions[this.json_.current_revision]);
     }
     return this.current_revision_;
+  }
+
+  // Gets the one-line subject of the CL.
+  getSubject() {
+    return this.json_.subject;
   }
 
   // Returns the CL description.

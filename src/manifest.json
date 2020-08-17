@@ -17,6 +17,7 @@
   ],
 
   "optional_permissions": [
+    "notifications",
     "http://*/",
     "https://*/"
   ],

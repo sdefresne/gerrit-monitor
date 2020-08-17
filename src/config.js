@@ -26,6 +26,11 @@ export const NO_HOST_ALLOWED = 'No host configured.';
 // Delay between automatic refresh of the badge data.
 export const REFRESH_DELAY_IN_MINUTES = 5;
 
+// Notification options.
+export const NOTIFICATIONS_ENABLED = 'enabled';
+export const NOTIFICATIONS_DISABLED = 'disabled';
+export const NOTIFICATIONS_UNSPECIFIED = 'unspecified';
+
 // Default options.
 export const DEFAULT_OPTIONS = {
   // URL of the gerrit instance to monitor.
@@ -39,4 +44,12 @@ export const DEFAULT_OPTIONS = {
     host: 'https://fuchsia-review.googlesource.com',
     enabled: false,
   }],
+
+  // Should notifications been shown?
+  //
+  // The default is "unspecified", which currently means "no" but we may
+  // change to "yes" in the future. Having "unspecified" lets us distinguish
+  // between users who haven't made a choice versus those who have explictly
+  // opted out.
+  showNotifications: NOTIFICATIONS_UNSPECIFIED,
 };

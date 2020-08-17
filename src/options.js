@@ -21,11 +21,17 @@ import * as gerrit from './gerrit.js';
 export class Options {
   constructor() {
     this.instances_ = [];
+    this.showNotifications_ = config.NOTIFICATIONS_UNSPECIFIED;
   }
 
   // Return the value for option.
   instances() {
     return this.instances_;
+  }
+
+  // Return true if notifications are enabled.
+  notificationsEnabled() {
+    return this.showNotifications_ === config.NOTIFICATIONS_ENABLED;
   }
 
   // Sets the status text (with a timeout).
@@ -100,11 +106,19 @@ export class Options {
     for (const instance of instances) {
       this.addGerritInstance(instance.host, instance.name, instance.enabled);
     }
+
+    // Update the notification option.
+    if (options.showNotifications !== undefined) {
+      browser.getElement('show-notifications').value = options.showNotifications;
+    }
   }
 
   // Save the options to Chrome storage and update permissions.
   async saveOptions() {
-    var options = { instances: this.instances_ };
+    var options = {
+      instances: this.instances_,
+      showNotifications: this.showNotifications_,
+    };
 
     // Determine the set of origins we need access to.
     var origins = [];
@@ -116,8 +130,12 @@ export class Options {
         }
       }
     });
+
     try {
       await browser.setAllowedOrigins(origins);
+      if (this.showNotifications_ == config.NOTIFICATIONS_ENABLED) {
+        await browser.requestNotificationPermission();
+      }
       await browser.saveOptions(options);
       this.setStatusText('Options saved.');
     } catch (error) {
@@ -144,6 +162,11 @@ export class Options {
       } else {
         this.setStatusText('Incorrect values.');
       }
+    }).bind(this));
+
+    // Set up "show-notifications" option.
+    browser.getElement('show-notifications').addEventListener('change', (function () {
+      this.showNotifications_ = browser.getElement('show-notifications').value;
     }).bind(this));
 
     browser.getElement('save-button').addEventListener('click', (function () {

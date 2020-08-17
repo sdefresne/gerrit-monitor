@@ -16,6 +16,9 @@ import * as config from './config.js';
 import * as messages from './messages.js';
 import * as utils from './utils.js';
 
+// If true, we registered event handlers to "chrome.notifications" events.
+let notificationListenersRegistered = false;
+
 // Makes badge indicate that an action is pending.
 export function displayLoading() {
   updateBadge(messages.LOADING_BADGE_DATA);
@@ -177,6 +180,26 @@ export function saveOptions(options) {
   });
 };
 
+// Load values from local (non-synchronised) storage.
+export function getLocalStorage(key, defaultVal) {
+  return new Promise(function(resolve) {
+    chrome.storage.local.get([key], (result) => {
+      if (result[key] === undefined) {
+        resolve(defaultVal);
+      } else {
+        resolve(result[key]);
+      }
+    });
+  });
+}
+
+// Save the given value to local storage.
+export function setLocalStorage(key, val) {
+  let result = {};
+  result[key] = val;
+  chrome.storage.local.set(result);
+}
+
 // Fetches origins allowed for the extension.
 export function getAllowedOrigins() {
   return new Promise(function(resolve, reject) {
@@ -222,7 +245,53 @@ export function setAllowedOrigins(origins) {
     });
 };
 
+// Return true if notification permissions have been granted.
+export function haveNotificationPermissions() {
+  return new Promise(resolve => {
+    chrome.permissions.contains({
+      permissions: ['notifications']
+    }, resolve);
+  });
+}
+
+// Requests permissions to allow notifications to be sent.
+export function requestNotificationPermission() {
+  return new Promise((resolve, reject) => {
+    chrome.permissions.request({
+      permissions: ['notifications'],
+    }, (granted) => {
+      if (!granted) {
+        reject(new Error("permissions not granted"));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+
 // Opens the option page.
 export function openOptionsPage() {
   chrome.runtime.openOptionsPage();
 };
+
+// Create a notification.
+//
+// The "url" parameter is used as the notification ID, and will be navigated to when
+// the notification is clicked on.
+export function createNotification(url, options) {
+  // Register for notifications.
+  //
+  // We need to do this lazily, because "chrome.notifications" won't exist if we
+  // don't have notification permissions.
+  if (!notificationListenersRegistered) {
+    // When a notification is clicked, open a URL and clear the notification.
+    chrome.notifications.onClicked.addListener(id => {
+      openUrl(id, true);
+      chrome.notifications.clear(id);
+    });
+    notificationListenersRegistered = true;
+  }
+
+  chrome.notifications.create(url, options);
+}
