@@ -21,6 +21,8 @@
     "https://*/"
   ],
 
+  "options_page": "options.html",
+
   "browser_action": {
     "default_icon": {
       "24": "img/ic_assignment_black_24dp_1x.png",
@@ -28,11 +30,6 @@
     },
     "default_title": "Unknown",
     "default_popup": "popup.html"
-  },
-
-  "options_ui": {
-    "page": "options.html",
-    "chrome_style": true
   },
 
   "background": {

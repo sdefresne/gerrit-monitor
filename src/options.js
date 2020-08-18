@@ -33,7 +33,7 @@ export class Options {
     browser.getElement('status').innerText = text;
     setTimeout(
         function() { browser.getElement('status').innerText = ''; },
-        opt_timeout || 350);
+        opt_timeout || 2000);
   }
 
   // Add a new Gerrit instance, or enable the instance if it already exists.
@@ -90,18 +90,24 @@ export class Options {
   }
 
   // Restore the options from Chrome storage and update the option page.
-  loadOptions() {
-    return gerrit.fetchAllInstances().then((function(instances) {
-      instances.forEach((function(instance) {
-        this.addGerritInstance(instance.host, instance.name, instance.enabled);
-      }).bind(this));
-    }).bind(this));
+  async loadOptions() {
+    let [options, instances] = await Promise.all([
+      browser.loadOptions(),
+      gerrit.fetchAllInstances(),
+    ]);
+
+    // Update the list of Gerrit instances.
+    for (const instance of instances) {
+      this.addGerritInstance(instance.host, instance.name, instance.enabled);
+    }
   }
 
   // Save the options to Chrome storage and update permissions.
-  saveOptions() {
-    var origins = [];
+  async saveOptions() {
     var options = { instances: this.instances_ };
+
+    // Determine the set of origins we need access to.
+    var origins = [];
     this.instances_.forEach(function(instance) {
       if (instance.enabled) {
         var match = config.ORIGIN_REGEXP.exec(instance.host);
@@ -110,16 +116,13 @@ export class Options {
         }
       }
     });
-    return browser.setAllowedOrigins(origins)
-      .then(function () {
-        return browser.saveOptions(options);
-      })
-      .then((function () {
-        this.setStatusText('Options saved.');
-      }).bind(this))
-      .catch((function (error) {
-        this.setStatusText(String(error));
-      }).bind(this));
+    try {
+      await browser.setAllowedOrigins(origins);
+      await browser.saveOptions(options);
+      this.setStatusText('Options saved.');
+    } catch (error) {
+      this.setStatusText(String(error));
+    }
   }
 
   // Main method.
