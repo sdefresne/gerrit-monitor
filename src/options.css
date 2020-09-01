@@ -16,11 +16,23 @@
 
 body {
   overflow-y: scroll;
-  margin: 0 10px 10px 10px;
+  width: 50rem;
+  margin: 1em auto 1em auto;
 }
 
+/* Table styling */
 table {
   width: 100%;
+}
+td, th {
+  padding: 3px 6px;
+}
+tr:nth-child(even) {
+  background: #F0F0F0;
+}
+thead {
+  font-weight: normal;
+  background: #D0D0D0;
 }
 
 div {
@@ -43,4 +55,9 @@ input:invalid {
 
 .center-aligned {
   text-align: center
+}
+
+.status-text {
+  font-weight: bold;
+  padding-right: 6px;
 }

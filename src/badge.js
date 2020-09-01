@@ -16,56 +16,45 @@ import * as browser from './browser.js';
 import * as config from './config.js';
 import * as gerrit from './gerrit.js';
 import * as messages from './messages.js';
-
-// Fetches information about interesting CLs and update the badge.
-function fetchAndUpdate(hosts, detailed) {
-  return fetchCls(hosts, detailed)
-    .then(function(promises) {
-      let fullfilled = promises
-        .filter(function(promise) {
-          return promise.status === "fulfilled";
-        })
-        .map(function(promise) {
-          return promise.value;
-        });
-
-      let rejected = promises
-        .filter(function(promise) {
-          return promise.status !== "fulfilled";
-        })
-        .map(function(promise) {
-          return {
-            host: promise.reason.host,
-            error: promise.reason.error.message,
-          }
-        });
-
-      return update({
-        results: new gerrit.SearchResults(fullfilled),
-        errors: rejected,
-      });
-    });
-};
+import * as notifications from './notifications.js';
 
 // Fetches information about interesting CLs.
-function fetchCls(hosts, detailed) {
+async function fetchCls(hosts, detailed) {
   if (hosts.length === 0) {
-    return Promise.reject(new Error(config.NO_HOST_ALLOWED));
+    throw new Error(config.NO_HOST_ALLOWED);
   }
 
-  return Promise.allSettled(hosts.map(function(host) {
-    return gerrit.fetchAccount(host)
-        .then(function(account) {
-          return gerrit.fetchReviews(host, account, detailed);
-        })
-        .catch(function(error) {
-          return Promise.reject({
-            host: host,
-            error: error,
-          });
-        });
+  // Fetch results from all hosts in parallel.
+  let results = new Array();
+  let errors = new Array();
+  await Promise.allSettled(hosts.map(async (host) => {
+    try {
+      let account = await gerrit.fetchAccount(host);
+      let reviews = await gerrit.fetchReviews(host, account, detailed);
+      results.push(reviews);
+    } catch (error) {
+      errors.push({ host: host, error: error });
+    }
   }));
+
+  return {
+    results: new gerrit.SearchResults(results),
+    errors: errors,
+  };
 };
+
+async function fetchAndUpdate(hosts, detailed) {
+  // Fetch results.
+  let results = await fetchCls(hosts, detailed);
+
+  // Update the badge.
+  update(results);
+
+  // Send any notifications.
+  await notifications.notify(results.results, results.errors);
+
+  return results;
+}
 
 // Updates the badge.
 function update(wrapper) {
@@ -114,7 +103,6 @@ function update(wrapper) {
     updateData = messages.DEFAULT_BADGE_DATA;
 
   browser.updateBadge(updateData);
-  return Promise.resolve(wrapper);
 };
 
 // Automatically refresh the badge.
