@@ -16,9 +16,6 @@ import * as config from './config.js';
 import * as messages from './messages.js';
 import * as utils from './utils.js';
 
-// If true, we registered event handlers to "chrome.notifications" events.
-let notificationListenersRegistered = false;
-
 // Makes badge indicate that an action is pending.
 export function displayLoading() {
   updateBadge(messages.LOADING_BADGE_DATA);
@@ -280,18 +277,21 @@ export function openOptionsPage() {
 // The "url" parameter is used as the notification ID, and will be navigated to when
 // the notification is clicked on.
 export function createNotification(url, options) {
-  // Register for notifications.
+  // Register for notifications if we haven't already.
   //
   // We need to do this lazily, because "chrome.notifications" won't exist if we
   // don't have notification permissions.
-  if (!notificationListenersRegistered) {
-    // When a notification is clicked, open a URL and clear the notification.
-    chrome.notifications.onClicked.addListener(id => {
-      openUrl(id, true);
-      chrome.notifications.clear(id);
-    });
-    notificationListenersRegistered = true;
+  if (!chrome.notifications.onClicked.hasListener(notificationClicked)) {
+    chrome.notifications.onClicked.addListener(notificationClicked);
   }
 
   chrome.notifications.create(url, options);
+}
+
+// Handle a click to a notification.
+//
+// When a notification is clicked, open a URL and clear the notification.
+function notificationClicked(url) {
+  openUrl(url, true);
+  chrome.notifications.clear(url);
 }
