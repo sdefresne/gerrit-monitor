@@ -419,15 +419,19 @@ export class Description {
 
 // The result of a search query.
 export class SearchResult {
-  constructor(host, user, data) {
+  constructor(host, user, data, options) {
     this.host_ = host;
     this.user_ = user;
     this.data_ = data;
+    this.options_ = options;
   }
 
   // Returns data required to recreate the SearchResult.
   toJSON() {
-    return {host: this.host_, user: this.user_, data: this.data_};
+    return {
+      host: this.host_, user: this.user_,
+      data: this.data_, options: this.options_
+    };
   }
 
   // Returns a map from a type of attention to the CLs that needs that
@@ -453,11 +457,12 @@ export class SearchResult {
     return this.user_;
   }
 
-  static wrap(host, user, data) {
+  static wrap(host, user, data, options) {
     return new SearchResult(
         host,
         user,
-        data.map(function(json) { return Changelist.wrap(host, json); }));
+        data.map(function(json) { return Changelist.wrap(host, json); }),
+        options);
   }
 }
 
@@ -583,7 +588,7 @@ export function fetchReviews(host, account, detailed) {
     .then(parseJSON)
     .then(function(results) {
     return Promise.resolve(SearchResult.wrap(
-        host, account, [].concat.apply([], results)));
+        host, account, [].concat.apply([], results), browser.loadOptions()));
   });
 };
 
