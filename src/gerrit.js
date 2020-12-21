@@ -95,6 +95,15 @@ export class Changelist {
     return this.json_.work_in_progress === true;
   }
 
+  // Returns whether the user is in the attention set of this CL.
+  needsAttention(user) {
+    // This object is an object with properties, rather than a true map
+    if (this.json_.hasOwnProperty("attention_set")) {
+      return !!this.json_.attention_set.hasOwnProperty(user._account_id);
+    }
+    return false
+  }
+
   // Returns the number of lines changed by this CL.
   getDeltaSize() {
     return this.json_.insertions + this.json_.deletions;
@@ -173,6 +182,9 @@ export class Changelist {
       if (this.isWorkInProgress())
         return Changelist.WIP;
 
+      if (this.needsAttention(user))
+        return Changelist.OUTGOING_NEEDS_ATTENTION;
+
       if (this.getReviewers().length == 0)
         return Changelist.NO_REVIEWERS;
 
@@ -184,6 +196,9 @@ export class Changelist {
 
       return Changelist.NONE;
     }
+
+    if (this.needsAttention(user))
+      return Changelist.INCOMING_NEEDS_ATTENTION;
 
     if (!this.hasReviewed(user)) {
       // Check if the latest CL revision is explicitly marked as reviewed or
@@ -551,8 +566,10 @@ export function fetchAccount(host) {
 export function fetchReviews(host, account, detailed) {
   var params = [];
   var userid = account._account_id;
-  params.push(['q', 'status:open owner:' + userid]);
-  params.push(['q', 'status:open -star:ignore reviewer:' + userid + ' -owner:' + userid]);
+  params.push(['q', 'attention:' + userid]);
+  params.push(['q', 'status:open owner:' + userid + ' -attention:' + userid]);
+  params.push(['q', 'status:open -star:ignore reviewer:' + userid +
+      ' -owner:' + userid + ' -attention:' + userid]);
   params.push(['o', 'CURRENT_REVISION']);
   params.push(['o', 'DETAILED_LABELS']);
   params.push(['o', 'MESSAGES']);
