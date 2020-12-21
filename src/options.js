@@ -21,7 +21,7 @@ import * as gerrit from './gerrit.js';
 export class Options {
   constructor() {
     this.instances_ = [];
-    this.showNotifications_ = config.NOTIFICATIONS_UNSPECIFIED;
+    this.showNotifications_ = config.OPTION_UNSPECIFIED;
   }
 
   // Return the value for option.
@@ -31,7 +31,7 @@ export class Options {
 
   // Return true if notifications are enabled.
   notificationsEnabled() {
-    return this.showNotifications_ === config.NOTIFICATIONS_ENABLED;
+    return this.showNotifications_ === config.OPTION_ENABLED;
   }
 
   // Sets the status text (with a timeout).
@@ -133,7 +133,7 @@ export class Options {
 
     try {
       await browser.setAllowedOrigins(origins);
-      if (this.showNotifications_ == config.NOTIFICATIONS_ENABLED) {
+      if (this.showNotifications_ == config.OPTION_ENABLED) {
         await browser.requestNotificationPermission();
       }
       await browser.saveOptions(options);
