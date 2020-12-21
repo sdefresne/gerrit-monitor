@@ -95,6 +95,14 @@ export class Changelist {
     return this.json_.work_in_progress === true;
   }
 
+  // Returns whether _any_ user is in the attention set of this CL.
+  needsAnyAttention() {
+    if (this.json_.hasOwnProperty("attention_set")) {
+      return Object.keys(this.json_.attention_set).length > 0;
+    }
+    return false
+  }
+
   // Returns whether the user is in the attention set of this CL.
   needsAttention(user) {
     // This object is an object with properties, rather than a true map
@@ -171,6 +179,35 @@ export class Changelist {
 
     var lastMessage = filteredMessages[filteredMessages.length - 1];
     return !lastMessage || lastMessage.isAuthoredBy(owner);
+  }
+
+  // Attention-set-based attention type assignment
+  getCategoryFromAS(user) {
+    if (this.isOwner(user)) {
+      if (this.needsAttention(user)) {
+        return Changelist.OUTGOING_NEEDS_ATTENTION;
+      }
+      if (this.isSubmittable()) {
+        return Changelist.READY_TO_SUBMIT;
+      }
+      if (this.isWorkInProgress()) {
+        return Changelist.WIP;
+      }
+      if (this.isStale()) {
+        return Changelist.STALE;
+      }
+
+      // An owner's CL which isn't ready to submit, a WIP, or stale, and has no
+      // attention explicitly requested, needs the owner's attention. If only to
+      // reclassify it as one of those things.
+      if (!this.needsAnyAttention()) {
+        return Changelist.OUTGOING_NEEDS_ATTENTION;
+      }
+    }
+    if (this.needsAttention(user)) {
+      return Changelist.INCOMING_NEEDS_ATTENTION;
+    }
+    return Changelist.NONE;
   }
 
   // Returns the type of attention this CL needs from the given user.
@@ -439,8 +476,14 @@ export class SearchResult {
   getCategoryMap() {
     var result = new utils.Map();
     var user = this.getAccount();
+    var aSetOnly = this.options_.onlyAttentionSet_;
     this.data_.forEach(function(cl) {
-      var attention = cl.getCategory(user);
+      var attention
+      if (aSetOnly) {
+        attention = cl.getCategoryFromAS(user);
+      } else {
+        attention = cl.getCategory(user);
+      }
       if (!result.has(attention)) {
         result.put(attention, []);
       }

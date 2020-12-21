@@ -301,6 +301,7 @@ function setElementVisibility(identifier, visible) {
 // Calls the badge page to get the search results.
 function getSearchResults() {
   return gerrit.fetchAllowedInstances().then(function(instances) {
+    var options = browser.loadOptions().catch(() => {});
     var hosts = instances.map(function(instance) { return instance.host; });
     return comm.sendMessage('getSearchResults', hosts)
       .then(function(wrapper) {
@@ -309,7 +310,7 @@ function getSearchResults() {
           results = new gerrit.SearchResults(wrapper.results.map(
             function(result) {
               return gerrit.SearchResult.wrap(
-                result.host, result.user, result.data);
+                result.host, result.user, result.data, options);
             }));
         }
 
