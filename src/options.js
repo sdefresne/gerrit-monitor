@@ -21,6 +21,7 @@ import * as gerrit from './gerrit.js';
 export class Options {
   constructor() {
     this.instances_ = [];
+    this.onlyAttentionSet_ = config.OPTION_UNSPECIFIED;
     this.showNotifications_ = config.OPTION_UNSPECIFIED;
   }
 
@@ -107,6 +108,11 @@ export class Options {
       this.addGerritInstance(instance.host, instance.name, instance.enabled);
     }
 
+    // Update the attention set option.
+    if (options.onlyAttentionSet !== undefined) {
+      browser.getElement('only-attention-set').value = options.onlyAttentionSet;
+    }
+
     // Update the notification option.
     if (options.showNotifications !== undefined) {
       browser.getElement('show-notifications').value = options.showNotifications;
@@ -117,6 +123,7 @@ export class Options {
   async saveOptions() {
     var options = {
       instances: this.instances_,
+      onlyAttentionSet: this.onlyAttentionSet_,
       showNotifications: this.showNotifications_,
     };
 
@@ -162,6 +169,11 @@ export class Options {
       } else {
         this.setStatusText('Incorrect values.');
       }
+    }).bind(this));
+
+    // Set up "only-attention-set" option.
+    browser.getElement('only-attention-set').addEventListener('change', (function () {
+      this.onlyAttentionSet_ = browser.getElement('only-attention-set').value;
     }).bind(this));
 
     // Set up "show-notifications" option.

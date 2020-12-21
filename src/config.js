@@ -52,4 +52,6 @@ export const DEFAULT_OPTIONS = {
   // between users who haven't made a choice versus those who have explictly
   // opted out.
   showNotifications: OPTION_UNSPECIFIED,
+  // And the same for relying solely on the Attention Set feature
+  onlyAttentionSet: OPTION_UNSPECIFIED,
 };
