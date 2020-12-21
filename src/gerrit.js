@@ -98,7 +98,7 @@ export class Changelist {
   // Returns whether the user is in the attention set of this CL.
   needsAttention(user) {
     // This object is an object with properties, rather than a true map
-    if(this.json_.hasOwnProperty("attention_set")) {
+    if (this.json_.hasOwnProperty("attention_set")) {
       return !!this.json_.attention_set.hasOwnProperty(user._account_id);
     }
     return false
