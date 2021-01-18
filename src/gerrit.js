@@ -182,7 +182,7 @@ export class Changelist {
   }
 
   // Attention-set-based attention type assignment
-  getCategoryFromAS(user) {
+  getCategoryFromAttentionSet(user) {
     if (this.isOwner(user)) {
       if (this.needsAttention(user)) {
         return Changelist.OUTGOING_NEEDS_ATTENTION;
@@ -476,11 +476,11 @@ export class SearchResult {
   getCategoryMap() {
     var result = new utils.Map();
     var user = this.getAccount();
-    var aSetOnly = this.options_.onlyAttentionSet_;
+    var attentionSetOnly = this.options_.onlyAttentionSet_;
     this.data_.forEach(function(cl) {
       var attention
-      if (aSetOnly) {
-        attention = cl.getCategoryFromAS(user);
+      if (attentionSetOnly) {
+        attention = cl.getCategoryFromAttentionSet(user);
       } else {
         attention = cl.getCategory(user);
       }
