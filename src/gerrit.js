@@ -95,6 +95,14 @@ export class Changelist {
     return this.json_.work_in_progress === true;
   }
 
+  // Returns whether _any_ user is in the attention set of this CL.
+  needsAnyAttention() {
+    if (this.json_.hasOwnProperty("attention_set")) {
+      return Object.keys(this.json_.attention_set).length > 0;
+    }
+    return false
+  }
+
   // Returns whether the user is in the attention set of this CL.
   needsAttention(user) {
     // This object is an object with properties, rather than a true map
@@ -171,6 +179,35 @@ export class Changelist {
 
     var lastMessage = filteredMessages[filteredMessages.length - 1];
     return !lastMessage || lastMessage.isAuthoredBy(owner);
+  }
+
+  // Attention-set-based attention type assignment
+  getCategoryFromAttentionSet(user) {
+    if (this.isOwner(user)) {
+      if (this.needsAttention(user)) {
+        return Changelist.OUTGOING_NEEDS_ATTENTION;
+      }
+      if (this.isSubmittable()) {
+        return Changelist.READY_TO_SUBMIT;
+      }
+      if (this.isWorkInProgress()) {
+        return Changelist.WIP;
+      }
+      if (this.isStale()) {
+        return Changelist.STALE;
+      }
+
+      // An owner's CL which isn't ready to submit, a WIP, or stale, and has no
+      // attention explicitly requested, needs the owner's attention. If only to
+      // reclassify it as one of those things.
+      if (!this.needsAnyAttention()) {
+        return Changelist.OUTGOING_NEEDS_ATTENTION;
+      }
+    }
+    if (this.needsAttention(user)) {
+      return Changelist.INCOMING_NEEDS_ATTENTION;
+    }
+    return Changelist.NONE;
   }
 
   // Returns the type of attention this CL needs from the given user.
@@ -419,15 +456,19 @@ export class Description {
 
 // The result of a search query.
 export class SearchResult {
-  constructor(host, user, data) {
+  constructor(host, user, data, options) {
     this.host_ = host;
     this.user_ = user;
     this.data_ = data;
+    this.options_ = options;
   }
 
   // Returns data required to recreate the SearchResult.
   toJSON() {
-    return {host: this.host_, user: this.user_, data: this.data_};
+    return {
+      host: this.host_, user: this.user_,
+      data: this.data_, options: this.options_
+    };
   }
 
   // Returns a map from a type of attention to the CLs that needs that
@@ -435,8 +476,14 @@ export class SearchResult {
   getCategoryMap() {
     var result = new utils.Map();
     var user = this.getAccount();
+    var attentionSetOnly = this.options_.onlyAttentionSet_;
     this.data_.forEach(function(cl) {
-      var attention = cl.getCategory(user);
+      var attention
+      if (attentionSetOnly) {
+        attention = cl.getCategoryFromAttentionSet(user);
+      } else {
+        attention = cl.getCategory(user);
+      }
       if (!result.has(attention)) {
         result.put(attention, []);
       }
@@ -453,11 +500,12 @@ export class SearchResult {
     return this.user_;
   }
 
-  static wrap(host, user, data) {
+  static wrap(host, user, data, options) {
     return new SearchResult(
         host,
         user,
-        data.map(function(json) { return Changelist.wrap(host, json); }));
+        data.map(function(json) { return Changelist.wrap(host, json); }),
+        options);
   }
 }
 
@@ -583,7 +631,7 @@ export function fetchReviews(host, account, detailed) {
     .then(parseJSON)
     .then(function(results) {
     return Promise.resolve(SearchResult.wrap(
-        host, account, [].concat.apply([], results)));
+        host, account, [].concat.apply([], results), browser.loadOptions()));
   });
 };
 

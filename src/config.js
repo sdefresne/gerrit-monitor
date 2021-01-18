@@ -27,9 +27,9 @@ export const NO_HOST_ALLOWED = 'No host configured.';
 export const REFRESH_DELAY_IN_MINUTES = 5;
 
 // Notification options.
-export const NOTIFICATIONS_ENABLED = 'enabled';
-export const NOTIFICATIONS_DISABLED = 'disabled';
-export const NOTIFICATIONS_UNSPECIFIED = 'unspecified';
+export const OPTION_ENABLED = 'enabled';
+export const OPTION_DISABLED = 'disabled';
+export const OPTION_UNSPECIFIED = 'unspecified';
 
 // Default options.
 export const DEFAULT_OPTIONS = {
@@ -51,5 +51,7 @@ export const DEFAULT_OPTIONS = {
   // change to "yes" in the future. Having "unspecified" lets us distinguish
   // between users who haven't made a choice versus those who have explictly
   // opted out.
-  showNotifications: NOTIFICATIONS_UNSPECIFIED,
+  showNotifications: OPTION_UNSPECIFIED,
+  // And the same for relying solely on the Attention Set feature
+  onlyAttentionSet: OPTION_UNSPECIFIED,
 };
