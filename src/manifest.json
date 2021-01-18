@@ -3,7 +3,7 @@
 
   "name": "Gerrit Monitor",
   "description": "Monitor your CLs on Gerrit",
-  "version": "1.2.4",
+  "version": "1.2.5",
 
   "icons": {
     "48": "img/icon48.png",
