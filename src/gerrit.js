@@ -476,10 +476,10 @@ export class SearchResult {
   getCategoryMap() {
     var result = new utils.Map();
     var user = this.getAccount();
-    var attentionSetOnly = this.options_.onlyAttentionSet_;
+    var onlyAttentionSet = this.options_.onlyAttentionSet;
     this.data_.forEach(function(cl) {
       var attention
-      if (attentionSetOnly) {
+      if (onlyAttentionSet === config.OPTION_ENABLED) {
         attention = cl.getCategoryFromAttentionSet(user);
       } else {
         attention = cl.getCategory(user);
@@ -630,21 +630,19 @@ export function fetchReviews(host, account, detailed) {
   return sendRequest(host, '/changes/', params)
     .then(parseJSON)
     .then(function(results) {
-    return Promise.resolve(SearchResult.wrap(
-        host, account, [].concat.apply([], results), browser.loadOptions()));
+    return browser.loadOptions().then(function(options) {
+        return Promise.resolve(SearchResult.wrap(
+            host, account, [].concat.apply([], results), options));
+    });
   });
 };
 
 // Returns a promise with a list of all host that are configured
 // including those that have no permissions granted.
-export function fetchAllInstances() {
-  return Promise.all([
-      browser.loadOptions(),
-      browser.getAllowedOrigins(),
-    ]).then(function(values) {
+export function fetchAllInstances(options) {
+  return browser.getAllowedOrigins().then(function(origins) {
       var instances = [];
-      var origins = values[1];
-      values[0].instances.forEach(function(instance) {
+      options.instances.forEach(function(instance) {
         // Version of the extension prior to 0.7.7 allowed instance.host
         // to contains a trailing '/' which caused issue as some gerrit
         // instances fails when there are '//' in the path. Fix the host
@@ -665,8 +663,8 @@ export function fetchAllInstances() {
 
 // Returns a promise with a list of all host that the extension has
 // been granted permissions to access.
-export function fetchAllowedInstances() {
-  return fetchAllInstances().then(function(instances) {
+export function fetchAllowedInstances(options) {
+  return fetchAllInstances(options).then(function(instances) {
     return Promise.resolve(instances.filter(function(instance) {
       return instance.enabled;
     }));

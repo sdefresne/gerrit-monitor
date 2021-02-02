@@ -98,10 +98,8 @@ export class Options {
 
   // Restore the options from Chrome storage and update the option page.
   async loadOptions() {
-    let [options, instances] = await Promise.all([
-      browser.loadOptions(),
-      gerrit.fetchAllInstances(),
-    ]);
+    let options = await browser.loadOptions();
+    let instances = await gerrit.fetchAllInstances(options);
 
     // Update the list of Gerrit instances.
     for (const instance of instances) {

@@ -271,11 +271,13 @@ function setLogginButtonVisible(overlay_text, limit_to_those_hosts) {
 
   var button = browser.getElement('login-button');
   button.addEventListener('click', function() {
-    gerrit.fetchAllowedInstances().then(function(instances) {
-      instances.forEach(function (instance) {
-        var host = instance.host;
-        if (!limit_to_those_hosts || limit_to_those_hosts.indexOf(host) != -1)
-          browser.openUrl(host + '/dashboard/self', false);
+    browser.loadOptions().then(function(options) {
+      gerrit.fetchAllowedInstances(options).then(function(instances) {
+        instances.forEach(function (instance) {
+          var host = instance.host;
+          if (!limit_to_those_hosts || limit_to_those_hosts.indexOf(host) != -1)
+            browser.openUrl(host + '/dashboard/self', false);
+        });
       });
     });
   });
@@ -300,25 +302,27 @@ function setElementVisibility(identifier, visible) {
 
 // Calls the badge page to get the search results.
 function getSearchResults() {
-  return gerrit.fetchAllowedInstances().then(function(instances) {
-    var options = browser.loadOptions().catch(() => {});
-    var hosts = instances.map(function(instance) { return instance.host; });
-    return comm.sendMessage('getSearchResults', hosts)
-      .then(function(wrapper) {
-        var results = undefined;
-        if (wrapper.results.length !== 0) {
-          results = new gerrit.SearchResults(wrapper.results.map(
-            function(result) {
-              return gerrit.SearchResult.wrap(
-                result.host, result.user, result.data, options);
-            }));
-        }
+  return browser.loadOptions().then(function(options) {
+    return gerrit.fetchAllowedInstances(options).then(function(instances) {
+      var hosts = instances.map(function(instance) { return instance.host; });
+      return comm.sendMessage('getSearchResults', hosts).then(
+        function(wrapper) {
+          console.log(options);
+          var results = undefined;
+          if (wrapper.results.length !== 0) {
+            results = new gerrit.SearchResults(wrapper.results.map(
+              function(result) {
+                return gerrit.SearchResult.wrap(
+                  result.host, result.user, result.data, options);
+              }));
+          }
 
-        return Promise.resolve({
-          results: results,
-          errors: wrapper.errors
-        });
+          return Promise.resolve({
+            results: results,
+            errors: wrapper.errors
+          });
       });
+    });
   });
 };
 

@@ -107,13 +107,14 @@ function update(wrapper) {
 
 // Automatically refresh the badge.
 function onAlarm() {
-  gerrit.fetchAllowedInstances()
-    .then(function(instances) {
-      return fetchAndUpdate(
-          instances.map(function(instance) { return instance.host; }),
-          false);
-    })
-    .catch(function(error) { /* do nothing */ });
+  browser.loadOptions().then(function(options) {
+    return gerrit.fetchAllowedInstances(options)
+      .then(function(instances) {
+        return fetchAndUpdate(
+            instances.map(function(instance) { return instance.host; }),
+            false);
+      });
+  }).catch(function(error) { /* do nothing */ });
 };
 
 // Creates a message listener that turns browser channel message into

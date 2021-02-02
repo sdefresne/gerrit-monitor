@@ -151,11 +151,12 @@ export function openUrl(url, reuse_if_possible) {
 
 // Loads options from storage and return a promise with the options.
 export function loadOptions() {
-  return new Promise(function(resolve, reject) {
+  var promise = new Promise(function(resolve, reject) {
     chrome.storage.sync.get(config.DEFAULT_OPTIONS, function(options) {
       resolve(options);
     });
   });
+  return promise.catch(() => {});
 };
 
 // Saves options to storage, returning a promise that will be resolved
