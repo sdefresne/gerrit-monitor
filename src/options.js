@@ -108,12 +108,18 @@ export class Options {
 
     // Update the attention set option.
     if (options.onlyAttentionSet !== undefined) {
+      this.onlyAttentionSet_ = options.onlyAttentionSet;
       browser.getElement('only-attention-set').value = options.onlyAttentionSet;
+    } else {
+      this.onlyAttentionSet_ = config.OPTION_UNSPECIFIED;
     }
 
     // Update the notification option.
     if (options.showNotifications !== undefined) {
+      this.showNotifications_ = options.showNotifications;
       browser.getElement('show-notifications').value = options.showNotifications;
+    } else {
+      this.showNotifications_ = config.OPTION_UNSPECIFIED;
     }
   }
 
