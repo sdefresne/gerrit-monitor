@@ -33,6 +33,27 @@ to the checkout `src/` directory.
 To deploy, you can use the `deploy.py` script or use the "Pack extension"
 button from chrome://extensions.
 
+## Setup
+
+Installing Gerrit Monitor is not enough to start getting push notifications;
+you need to configure the extension for all Gerrit hosts that interest you.
+
+After downloading the extension, click on it and click the button
+saying "Grant permissions".
+
+![grant permissions button](store/initial_download_grant_permissions.png)
+
+From here, a page will load where you can enable any Gerrit instances that
+interest you. Click the checkbox on the "Enabled?" column to enable Chromium
+or Fuchsia, or custom add additional instances using the boxes at the bottom.
+
+![Configure hosts](store/configure_hosts.png)
+
+Attention Set support in Gerrit Monitor is experimental. If interested, switch
+either or both boxes to "Enabled".
+
+![Configure Attention Set](store/configure_attention_set.png)
+
 ## License
 
 The project is licensed under the Apache 2.0 license.
