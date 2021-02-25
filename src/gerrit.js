@@ -64,6 +64,7 @@ export class Changelist {
   constructor(host, json) {
     this.host_ = host;
     this.json_ = json;
+    this.updated_ = null;
     this.description_ = null;
     this.reviewers_ = null;
     this.messages_ = null;
@@ -344,6 +345,14 @@ export class Changelist {
     return this.description_;
   }
 
+  // Returns the timestamp this changelist was last updated.
+  getUpdateTimestamp() {
+    if (this.updated_ === null) {
+      this.updated_ = new Date(this.json_.updated);
+    }
+    return this.updated_;
+  }
+
   static wrap(host, json) {
     return new Changelist(host, json);
   }
@@ -513,6 +522,7 @@ export class SearchResult {
 export class SearchResults {
   constructor(results) {
     this.results_ = results;
+    this.categories_ = null;
   }
 
   // Returns the data required to recreate the SearchResult.
@@ -523,16 +533,24 @@ export class SearchResults {
   // Returns a map from a type of attention to the CLs that need that
   // attention from the user.
   getCategoryMap() {
-    var categories = new utils.Map();
-    this.results_.forEach(function(result) {
-      result.getCategoryMap().forEach(function(attention, cls) {
-        if (!categories.has(attention)) {
-          categories.put(attention, []);
-        }
-        categories.put(attention, categories.get(attention).concat(cls));
+    if (this.categories_ === null) {
+      let categories = new utils.Map();
+      this.results_.forEach(function(result) {
+        result.getCategoryMap().forEach(function(attention, cls) {
+          if (!categories.has(attention)) {
+            categories.put(attention, []);
+          }
+          categories.put(attention, categories.get(attention).concat(cls));
+        });
       });
-    });
-    return categories;
+      categories.forEach(function(category, cls) {
+        cls.sort(function(cl1, cl2) {
+          return cl2.getUpdateTimestamp() - cl1.getUpdateTimestamp();
+        });
+      });
+      this.categories_ = categories;
+    }
+    return this.categories_;
   }
 }
 
