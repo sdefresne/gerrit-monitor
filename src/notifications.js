@@ -22,10 +22,13 @@ const ACTIVE_ERRORS_KEY = 'active_errors';  // Active error conditions.
 
 // Return true if notifications are enabled.
 export async function notificationsEnabled() {
-  let options = browser.loadOptions();
-  let havePermissions = browser.haveNotificationPermissions();
-  return (await options).showNotifications !== config.OPTION_DISABLED &&
-        (await havePermissions);
+  let [options, grantedPermissions] = await Promise.all([
+      browser.loadOptions(),
+      browser.getGrantedPermissions(),
+  ]);
+
+  return options.showNotifications !== config.OPTION_DISABLED &&
+         grantedPermissions.permissions.includes('notifications');
 }
 
 // Send notifications.

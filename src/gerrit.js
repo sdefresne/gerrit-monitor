@@ -639,34 +639,31 @@ export function fetchReviews(host, account, detailed) {
 
 // Returns a promise with a list of all host that are configured
 // including those that have no permissions granted.
-export function fetchAllInstances(options) {
-  return browser.getAllowedOrigins().then(function(origins) {
-      var instances = [];
-      options.instances.forEach(function(instance) {
+export async function fetchAllInstances(options) {
+  var permissions = await browser.getGrantedPermissions();
+  return options.instances
+      .map(instance => {
         // Version of the extension prior to 0.7.7 allowed instance.host
         // to contains a trailing '/' which caused issue as some gerrit
         // instances fails when there are '//' in the path. Fix the host
         // by dropping the trailing '/'.
-
         var match = config.ORIGIN_REGEXP.exec(instance.host);
         if (match !== null) {
-          instances.push({
+          var origin = match[1] + "/*";
+          return {
             host: match[0],
             name: instance.name,
-            enabled: instance.enabled && origins.includes(match[1] + "/*"),
-          });
+            enabled: instance.enabled && permissions.origins.includes(origin),
+          }
+        } else {
+          return null;
         }
-      });
-      return Promise.resolve(instances);
-    });
+      }).filter(element => { return element !== null});
 };
 
 // Returns a promise with a list of all host that the extension has
 // been granted permissions to access.
-export function fetchAllowedInstances(options) {
-  return fetchAllInstances(options).then(function(instances) {
-    return Promise.resolve(instances.filter(function(instance) {
-      return instance.enabled;
-    }));
-  });
+export async function fetchAllowedInstances(options) {
+  var instances = await fetchAllInstances(options);
+  return instances.filter(instance => { return instance.enabled });
 };

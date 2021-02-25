@@ -16,6 +16,12 @@ import * as config from './config.js';
 import * as messages from './messages.js';
 import * as utils from './utils.js';
 
+// Returns whether a permission change object is empty.
+function permissionChangeEmpty(permissions_change) {
+  return permissions_change.origins.length === 0 &&
+         permissions_change.permissions.length === 0;
+}
+
 // Makes badge indicate that an action is pending.
 export function displayLoading() {
   updateBadge(messages.LOADING_BADGE_DATA);
@@ -198,75 +204,65 @@ export function setLocalStorage(key, val) {
   chrome.storage.local.set(result);
 }
 
-// Fetches origins allowed for the extension.
-export function getAllowedOrigins() {
+// Fetch all permissions granted to the extension.
+export function getGrantedPermissions() {
   return new Promise(function(resolve, reject) {
     chrome.permissions.getAll(function(permissions) {
-      resolve(permissions.origins);
-    });
-  });
-};
-
-// Requests permissions to allow access to those origins.
-export function setAllowedOrigins(origins) {
-  return getAllowedOrigins()
-    .then(function(allowed_origins) {
-      var remove_permissions = { origins: [] };
-      allowed_origins.forEach(function(origin) {
-        if (!origins.includes(origin)) {
-          remove_permissions.origins.push(origin);
-        }
-      });
-      var request_permissions = { origins: [] };
-      origins.forEach(function(origin) {
-        if (!allowed_origins.includes(origin)) {
-          request_permissions.origins.push(origin);
-        }
-      });
-      return new Promise(function(resolve, reject) {
-        chrome.permissions.remove(remove_permissions, function(removed) {
-          if (!removed) {
-            reject(new Error("cannot drop permissions"));
-            return;
-          }
-
-          chrome.permissions.request(request_permissions, function(granted) {
-            if (!granted) {
-              reject(new Error("permissions not granted"));
-              return;
-            }
-
-            resolve();
-          });
-        });
-      });
-    });
-};
-
-// Return true if notification permissions have been granted.
-export function haveNotificationPermissions() {
-  return new Promise(resolve => {
-    chrome.permissions.contains({
-      permissions: ['notifications']
-    }, resolve);
-  });
-}
-
-// Requests permissions to allow notifications to be sent.
-export function requestNotificationPermission() {
-  return new Promise((resolve, reject) => {
-    chrome.permissions.request({
-      permissions: ['notifications'],
-    }, (granted) => {
-      if (!granted) {
-        reject(new Error("permissions not granted"));
-        return;
-      }
-      resolve();
+      resolve(permissions);
     });
   });
 }
 
+// Requests permissions needed for the extension.
+export async function requestPermissions(origins, notifications) {
+  var permissions = await getGrantedPermissions();
+  var notifications_granted = permissions.permissions.includes('notifications');
+
+  var permissions_removal = {origins: [], permissions: []};
+  if (permissions.origins) {
+    permissions_removal.origins = permissions.origins
+        .filter(origin => { return !origins.includes(origin); });
+  }
+  if (!notifications && notifications_granted) {
+    permissions_removal.permissions.push('notifications');
+  }
+
+  if (!permissionChangeEmpty(permissions_removal)) {
+    await new Promise(function(resolve, reject) {
+      chrome.permissions.remove(permissions_removal, function(removed) {
+        if (!removed) {
+          reject(new Error("cannot drop permissions"));
+          return;
+        }
+
+        resolve();
+      })
+    });
+  }
+
+  var permissions_request = {origins: origins, permissions: []};
+  if (permissions.origins) {
+    permissions_request.origins = origins
+        .filter(origin => { return !permissions.origins.includes(origin); });
+  }
+
+  if (notifications && !notifications_granted) {
+    permissions_request.permissions.push('notifications');
+  }
+
+  if (!permissionChangeEmpty(permissions_request)) {
+    await new Promise(function(resolve, reject) {
+      chrome.permissions.request(permissions_request, function(granted) {
+        if (!granted) {
+          reject(new Error("permissions not granted"));
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+}
 
 // Opens the option page.
 export function openOptionsPage() {

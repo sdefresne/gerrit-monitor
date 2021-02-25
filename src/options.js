@@ -182,10 +182,8 @@ export class Options {
     });
 
     try {
-      await browser.setAllowedOrigins(origins);
-      if (this.showNotifications_ !== config.OPTION_DISABLED) {
-        await browser.requestNotificationPermission();
-      }
+      var notifications = this.showNotifications_ !== config.OPTION_DISABLED;
+      await browser.requestPermissions(origins, notifications);
       await browser.saveOptions(options);
       this.setStatusText('Options saved.');
     } catch (error) {
