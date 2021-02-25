@@ -307,7 +307,6 @@ function getSearchResults() {
       var hosts = instances.map(function(instance) { return instance.host; });
       return comm.sendMessage('getSearchResults', hosts).then(
         function(wrapper) {
-          console.log(options);
           var results = undefined;
           if (wrapper.results.length !== 0) {
             results = new gerrit.SearchResults(wrapper.results.map(
