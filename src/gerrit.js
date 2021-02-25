@@ -611,7 +611,7 @@ export function fetchAccount(host) {
 };
 
 // Returns a promise with all reviews requiring attention.
-export function fetchReviews(host, account, detailed) {
+export function fetchReviews(host, account) {
   var params = [];
   var userid = account._account_id;
   params.push(['q', 'attention:' + userid]);
@@ -623,10 +623,9 @@ export function fetchReviews(host, account, detailed) {
   params.push(['o', 'MESSAGES']);
   params.push(['o', 'REVIEWED']);
   params.push(['o', 'SUBMITTABLE']);
-  if (detailed) {
-    params.push(['o', 'CURRENT_COMMIT']);
-    params.push(['o', 'DETAILED_ACCOUNTS']);
-  }
+  params.push(['o', 'CURRENT_COMMIT']);
+  params.push(['o', 'DETAILED_ACCOUNTS']);
+
   return sendRequest(host, '/changes/', params)
     .then(parseJSON)
     .then(function(results) {

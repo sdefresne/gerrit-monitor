@@ -18,21 +18,40 @@ import * as gerrit from './gerrit.js';
 import * as messages from './messages.js';
 import * as notifications from './notifications.js';
 
+// Variable used to cache the results of fetchReviews.
+var fetchCache = {};
+
 // Fetches information about interesting CLs.
-async function fetchCls(hosts, detailed) {
+async function fetchCls(hosts) {
   if (hosts.length === 0) {
     throw new Error(config.NO_HOST_ALLOWED);
   }
+
+  const now = new Date();
 
   // Fetch results from all hosts in parallel.
   let results = new Array();
   let errors = new Array();
   await Promise.allSettled(hosts.map(async (host) => {
+    if (fetchCache[host]) {
+      const [timestamp, cached] = fetchCache[host];
+      if (now - timestamp < config.REVIEW_CACHE_DURATION_IN_MILLISECONDS) {
+        if (cached.error) {
+          errors.push({ host: host, error: cached.error });
+        } else {
+          results.push(cached.reviews);
+        }
+        return;
+      }
+    }
+
     try {
-      let account = await gerrit.fetchAccount(host);
-      let reviews = await gerrit.fetchReviews(host, account, detailed);
+      const account = await gerrit.fetchAccount(host);
+      const reviews = await gerrit.fetchReviews(host, account);
+      fetchCache[host] = [new Date(), {reviews: reviews}];
       results.push(reviews);
     } catch (error) {
+      fetchCache[host] = [new Date(), {error: error}];
       errors.push({ host: host, error: error });
     }
   }));
@@ -43,9 +62,9 @@ async function fetchCls(hosts, detailed) {
   };
 };
 
-async function fetchAndUpdate(hosts, detailed) {
+async function fetchAndUpdate(hosts) {
   // Fetch results.
-  let results = await fetchCls(hosts, detailed);
+  let results = await fetchCls(hosts);
 
   // Update the badge.
   update(results);
@@ -111,8 +130,7 @@ function onAlarm() {
     return gerrit.fetchAllowedInstances(options)
       .then(function(instances) {
         return fetchAndUpdate(
-            instances.map(function(instance) { return instance.host; }),
-            false);
+            instances.map(function(instance) { return instance.host; }));
       });
   }).catch(function(error) { /* do nothing */ });
 };
@@ -144,7 +162,7 @@ class RequestProxy {
   // Returns the search results displayed in the popup. If no search
   // results are saved, then cause the badge to refresh.
   getSearchResults(hosts) {
-    return fetchAndUpdate(hosts, true);
+    return fetchAndUpdate(hosts);
   }
 }
 
