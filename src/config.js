@@ -43,7 +43,13 @@ export const DEFAULT_OPTIONS = {
     name: 'Fuchsia',
     host: 'https://fuchsia-review.googlesource.com',
     enabled: false,
+  },
+  {
+    name: 'AOSP',
+    host: 'https://android-review.googlesource.com/',
+    enabled: false,
   }],
+  ],
 
   // Should notifications been shown?
   //
