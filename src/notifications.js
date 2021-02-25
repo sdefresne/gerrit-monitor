@@ -24,7 +24,7 @@ const ACTIVE_ERRORS_KEY = 'active_errors';  // Active error conditions.
 export async function notificationsEnabled() {
   let options = browser.loadOptions();
   let havePermissions = browser.haveNotificationPermissions();
-  return (await options).showNotifications === config.OPTION_ENABLED &&
+  return (await options).showNotifications !== config.OPTION_DISABLED &&
         (await havePermissions);
 }
 

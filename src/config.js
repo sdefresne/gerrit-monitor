@@ -26,7 +26,12 @@ export const NO_HOST_ALLOWED = 'No host configured.';
 // Delay between automatic refresh of the badge data.
 export const REFRESH_DELAY_IN_MINUTES = 5;
 
-// Notification options.
+// Notification options. The default should be OPTION_UNSPECIFIED which can
+// either mean "no" or "yes" depending on the option. Having "unspecified"
+// lets us distinguish between users who haven't made a choice versus those
+// who have explictly opted out. Thus allowing to change an option "default"
+// value without affecting the users that have consciously chosen one value
+// or the other.
 export const OPTION_ENABLED = 'enabled';
 export const OPTION_DISABLED = 'disabled';
 export const OPTION_UNSPECIFIED = 'unspecified';
@@ -52,11 +57,6 @@ export const DEFAULT_OPTIONS = {
   ],
 
   // Should notifications been shown?
-  //
-  // The default is "unspecified", which currently means "no" but we may
-  // change to "yes" in the future. Having "unspecified" lets us distinguish
-  // between users who haven't made a choice versus those who have explictly
-  // opted out.
   showNotifications: OPTION_UNSPECIFIED,
   // And the same for relying solely on the Attention Set feature
   onlyAttentionSet: OPTION_UNSPECIFIED,

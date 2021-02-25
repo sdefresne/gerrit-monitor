@@ -479,7 +479,7 @@ export class SearchResult {
     var onlyAttentionSet = this.options_.onlyAttentionSet;
     this.data_.forEach(function(cl) {
       var attention
-      if (onlyAttentionSet === config.OPTION_ENABLED) {
+      if (onlyAttentionSet !== config.OPTION_DISABLED) {
         attention = cl.getCategoryFromAttentionSet(user);
       } else {
         attention = cl.getCategory(user);

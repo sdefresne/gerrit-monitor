@@ -32,7 +32,7 @@ export class Options {
 
   // Return true if notifications are enabled.
   notificationsEnabled() {
-    return this.showNotifications_ === config.OPTION_ENABLED;
+    return this.showNotifications_ !== config.OPTION_DISABLED;
   }
 
   // Sets the status text (with a timeout).
@@ -144,7 +144,7 @@ export class Options {
 
     try {
       await browser.setAllowedOrigins(origins);
-      if (this.showNotifications_ == config.OPTION_ENABLED) {
+      if (this.showNotifications_ !== config.OPTION_DISABLED) {
         await browser.requestNotificationPermission();
       }
       await browser.saveOptions(options);
