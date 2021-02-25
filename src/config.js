@@ -51,10 +51,9 @@ export const DEFAULT_OPTIONS = {
   },
   {
     name: 'AOSP',
-    host: 'https://android-review.googlesource.com/',
+    host: 'https://android-review.googlesource.com',
     enabled: false,
   }],
-  ],
 
   // Should notifications been shown?
   showNotifications: OPTION_UNSPECIFIED,
