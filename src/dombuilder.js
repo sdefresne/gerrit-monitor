@@ -108,6 +108,15 @@ export class DomBuilder {
     return this;
   }
 
+  // Remove a CSS class name from the current element.
+  removeClass(name) {
+    this.current.className = this.current.className
+        .split(/\W+/)
+        .filter(function(element) { return element !== name })
+        .join(' ');
+    return this;
+  }
+
   // Invokes the given thunk for each element in the collection, passing
   // the element, this builder, and the index of the element. Useful for
   // building subtrees of variable length.

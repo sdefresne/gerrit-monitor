@@ -43,6 +43,10 @@ input:invalid {
   color: red;
 }
 
+.disabled {
+  text-decoration: line-through;
+}
+
 .right-aligned {
   display: flex;
   justify-content: flex-end;

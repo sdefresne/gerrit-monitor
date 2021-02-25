@@ -55,13 +55,14 @@ export class Options {
       }
     }
 
-    this.instances_.push({ host: host, name: name, enabled: enabled });
-    var instance_index = this.instances_.length - 1;
-    var instance = this.instances_[instance_index];
+    var instance = { host: host, name: name, enabled: enabled, deleted: false };
+    var instance_index = this.instances_.length;
+    this.instances_.push(instance);
 
     // Calling setAttribute('for', checkbox_id) does not work during the
     // construction, so wait until the element have been created to set it.
     var labels = [];
+    var inputs = [];
     dombuilder.DomBuilder.attach(browser.getElement('instances'))
       .begin('tr')
         .begin('td')
@@ -83,8 +84,36 @@ export class Options {
             .setAttribute('id', 'instance-' + instance_index)
             .setAttribute('checked', enabled)
             .withCurrentNode(function(node) {
+              inputs.push(node);
               node.addEventListener('change', function() {
                 instance.enabled = node.checked;
+              });
+            })
+          .end('input')
+        .end('td')
+        .begin('td')
+          .addClass('center-aligned')
+          .begin('input')
+            .setAttribute('type', 'checkbox')
+            .setAttribute('checked', false)
+            .withCurrentNode(function(node) {
+              node.addEventListener('change', function() {
+                instance.deleted = node.checked;
+                if (node.checked) {
+                  inputs.forEach(function(node) {
+                    node.disabled = true;
+                  });
+                  labels.forEach(function(node) {
+                    dombuilder.DomBuilder.attach(node).addClass('disabled');
+                  });
+                } else {
+                  inputs.forEach(function(node) {
+                    node.disabled = false;
+                  });
+                  labels.forEach(function(node) {
+                    dombuilder.DomBuilder.attach(node).removeClass('disabled');
+                  })
+                }
               });
             })
           .end('input')
@@ -125,15 +154,25 @@ export class Options {
 
   // Save the options to Chrome storage and update permissions.
   async saveOptions() {
+    var instances = this.instances_
+        .filter(function(instance) { return !instance.deleted; })
+        .map(function(instance) {
+          return {
+            host: instance.host,
+            name: instance.name,
+            enabled: instance.enabled,
+          }
+        });
+
     var options = {
-      instances: this.instances_,
+      instances: instances,
       onlyAttentionSet: this.onlyAttentionSet_,
       showNotifications: this.showNotifications_,
     };
 
     // Determine the set of origins we need access to.
     var origins = [];
-    this.instances_.forEach(function(instance) {
+    instances.forEach(function(instance) {
       if (instance.enabled) {
         var match = config.ORIGIN_REGEXP.exec(instance.host);
         if (match !== null) {
@@ -151,6 +190,17 @@ export class Options {
       this.setStatusText('Options saved.');
     } catch (error) {
       this.setStatusText(String(error));
+    }
+
+    if (instances.length !== this.instances_.length) {
+      this.instances_ = [];
+      var parent = browser.getElement('instances');
+      while (parent.children.length !== 0) {
+        parent.removeChild(parent.children[0]);
+      }
+      for (var instance of instances) {
+        this.addGerritInstance(instance.host, instance.name, instance.enabled);
+      }
     }
   }
 
