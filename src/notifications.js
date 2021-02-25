@@ -45,19 +45,35 @@ export async function notify(results, errors) {
 // a successful result again.
 async function notifyErrors(errorList) {
   // Fetch known-bad hosts.
-  let badHosts = new Set(await browser.getLocalStorage(ACTIVE_ERRORS_KEY, new Array()));
+  const badHosts = await browser.getLocalStorage(ACTIVE_ERRORS_KEY, []);
+  const badHostsSet = new Set(badHosts);
 
   // Show a notification for every host not already in the known-bad list.
-  let newBadHosts = new Array();
+  let newErrors = [];
   for (const error of errorList) {
-    if (!badHosts.has(error.host)) {
-      notifyError(error.host, "Could not load results from " + error.host + ": " + error.error);
+    if (!badHostsSet.has(error.host)) {
+      newErrors.push(error)
     }
-    newBadHosts.push(error.host);
+  }
+
+  if (newErrors.length) {
+    const firstError = newErrors[0];
+    if (newErrors.length === 1) {
+      notifyError(
+          firstError.host,
+          "Could not load results from " + firstError.host +
+              ": " + firstError.error);
+    } else {
+      notifyError(
+          firstError.host,
+          "Could not load results from " + newErrors.length + " hosts.");
+    }
   }
 
   // Update the new list.
-  browser.setLocalStorage(ACTIVE_ERRORS_KEY, newBadHosts);
+  return browser.setLocalStorage(
+      ACTIVE_ERRORS_KEY,
+      errorList.map(error => error.host));
 }
 
 // Send notifications about CLs on the given list.
@@ -103,7 +119,7 @@ async function notifyCLs(clList) {
   }
 
   // Save notification state.
-  browser.setLocalStorage(CL_LAST_NOTIFICATION_KEY, Array.from(newNotificationState));
+  await browser.setLocalStorage(CL_LAST_NOTIFICATION_KEY, Array.from(newNotificationState));
 }
 
 // Send an error notification.

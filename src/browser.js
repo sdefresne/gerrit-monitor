@@ -198,10 +198,14 @@ export function getLocalStorage(key, defaultVal) {
 }
 
 // Save the given value to local storage.
-export function setLocalStorage(key, val) {
+export async function setLocalStorage(key, val) {
   let result = {};
   result[key] = val;
-  chrome.storage.local.set(result);
+  return new Promise(function (resolve) {
+    chrome.storage.local.set(result, function() {
+      resolve();
+    });
+  });
 }
 
 // Fetch all permissions granted to the extension.
