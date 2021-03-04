@@ -577,7 +577,6 @@ function parseJSON(reply) {
 function sendRequest(host, path, params) {
   let tryFetch = function() {
     return browser.fetchUrl(host + path, params, {
-      'referer': 'gerrit-monitor',
       'pragma': 'no-cache',
       'cache-control': 'no-cache, must-revalidate',
     })
