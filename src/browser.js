@@ -129,14 +129,18 @@ export function callWhenLoaded(thunk) {
 
 // Open a new tab displaying the given url, or activate the first
 // tab displaying the given url if one exists.
-export function openUrl(url, reuse_if_possible) {
+export function openUrl(urlString, reuse_if_possible) {
   chrome.windows.getLastFocused({ populate: true }, function(currentWindow) {
     var candidates = currentWindow.tabs.filter(function(tab) {
-      return tab.url == url && reuse_if_possible == true;
+      return tab.url == urlString && reuse_if_possible == true;
     });
 
     if (candidates.length == 0) {
-      chrome.tabs.create({ url: url });
+      const url = new URL(url);
+      // Setting the User Source Parameter (usp) such that Gerrit understands
+      // that the user is coming from Gerrit Monitor.
+      url.searchParams.set('usp', 'gerrit-monitor');
+      chrome.tabs.create({ url: url.toString() });
     } else {
       var active = candidates.filter(function(tab) {
         return tab.active;
