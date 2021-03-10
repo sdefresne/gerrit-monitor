@@ -72,6 +72,15 @@ class SectionWidget {
     this.cls_.push(cl);
   }
 
+  // Configure click event on the "Open all" label.
+  setOpenAll(node) {
+    node.addEventListener('click', (function () {
+      for (var cl of this.cls_) {
+        browser.openUrl(cl.getGerritUrl(), true);
+      }
+    }).bind(this));
+  }
+
   // Renders this widget using the given builder.
   render(builder) {
     var data = messages.POPUP_SECTION_DATA[this.attention_];
@@ -80,8 +89,21 @@ class SectionWidget {
         .addClass('section')
         .addClass(data.className)
         .begin('div')
-          .appendText(data.formatHeader(this.cls_.length))
           .addClass('sectionheader')
+          .begin('p')
+            .addClass('alignleft')
+            .appendText(data.formatHeader(this.cls_.length))
+          .end('p')
+          .begin('div')
+            .addClass('link')
+            .addClass('alignright')
+            .appendText('Open all')
+            .setAttribute('hidden', !(this.cls_.length > 1))
+            .withCurrentNode(this.setOpenAll.bind(this))
+          .end('div')
+          .begin('div')
+            .addClass('clear')
+          .end('div')
         .end('div')
         .forEach(this.cls_, function(cl, builder, index) {
           cl.render(builder);
@@ -156,6 +178,7 @@ class ChangelistWidget {
       .begin('div')
         .addClass('changelist')
         .begin('div')
+          .addClass('link')
           .addClass('changelistheader')
           .withCurrentNode(this.setHeader.bind(this))
           .begin('table')
