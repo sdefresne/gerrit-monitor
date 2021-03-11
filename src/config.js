@@ -30,10 +30,9 @@ export const NO_HOST_ALLOWED = 'No host configured.';
 // Delay between automatic refresh of the badge data.
 export const REFRESH_DELAY_IN_MINUTES = 5;
 
-// Duration for keeping cached results (using half of the auto-refresh to
-// ensure a high enough hit rate from the cache).
+// Duration for keeping cached results.
 export const REVIEW_CACHE_DURATION_IN_MILLISECONDS =
-    REFRESH_DELAY_IN_MINUTES * MINUTES_IN_MILLISECONDS / 2;
+    1 * MINUTES_IN_MILLISECONDS;
 
 // Notification options. The default should be OPTION_UNSPECIFIED which can
 // either mean "no" or "yes" depending on the option. Having "unspecified"
