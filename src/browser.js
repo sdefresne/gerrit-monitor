@@ -55,11 +55,14 @@ export function createTextNode(value) {
 };
 
 // FetchError represents errors while attempting to fetch a URL.
-export class FetchError extends Error {
+export class FetchError {
   constructor(message, is_login_error) {
-    super(message);
     this.message = message;
     this.is_login_error = is_login_error;
+  }
+
+  static wrap(json) {
+    return new FetchError(json.message, json.is_login_error);
   }
 }
 

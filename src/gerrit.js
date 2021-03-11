@@ -564,8 +564,9 @@ function parseJSON(reply) {
     return Promise.resolve(JSON.parse(reply.substring(5)));
   }
 
-  return Promise.reject(new Error(
-      'Unexpected reply from Gerrit server: ' + header + '...'));
+  return Promise.reject(new browser.FetchError(
+      'Unexpected reply from Gerrit server: ' + header + '...',
+      false));
 };
 
 // Sends a request using the Gerrit JSON API.
@@ -620,9 +621,8 @@ export function fetchAccount(host) {
   return sendRequest(host, '/accounts/self')
     .then(function(response) {
       if (response.substring(0, 5) != ")]}'\n") {
-        return Promise.reject(new Error(
-            'Cannot fetch account.' +
-            config.LOGIN_PROMPT));
+        return Promise.reject(new browser.FetchError(
+            'Cannot fetch account.', true));
       }
       return Promise.resolve(response);
     }).then(parseJSON);

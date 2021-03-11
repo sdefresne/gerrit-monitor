@@ -259,7 +259,7 @@ function displayPopup() {
 
       if (wrapper.errors.length !== 0) {
         setLogginButtonVisible(
-          wrapper.errors[0].error,
+          wrapper.errors[0].error.message,
           wrapper.errors.map(function(error) {
             return error.host;
           }));
@@ -339,9 +339,19 @@ function getSearchResults() {
               }));
           }
 
+          var errors = undefined;
+          if (wrapper.errors.length !== 0) {
+            errors = wrapper.errors.map(function(element) {
+              return {
+                host: element.host,
+                error: browser.FetchError.wrap(element.error),
+              };
+            });
+          }
+
           return Promise.resolve({
             results: results,
-            errors: wrapper.errors
+            errors: errors,
           });
       });
     });
