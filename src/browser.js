@@ -108,7 +108,7 @@ export function fetchUrl(path, params, headers) {
         reject(new FetchError('Unknown error.' + config.LOGIN_PROMPT,
           true));
       } else {
-        reject(new FetchError(xhr.statusText, false));
+        reject(new FetchError("HTTP " + xhr.status, false));
       }
     };
     xhr.send(null);

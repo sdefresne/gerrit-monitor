@@ -89,7 +89,7 @@ function update(wrapper) {
     updateData = {
       text: '!',
       color: 'red',
-      title: 'Error: ' + wrapper.errors[0].error,
+      title: 'Error: ' + wrapper.errors[0].error.message,
       icon: {
         '24': 'img/ic_assignment_late_black_24dp_1x.png',
         '48': 'img/ic_assignment_late_black_24dp_2x.png',

@@ -257,7 +257,7 @@ function displayPopup() {
         }
       }
 
-      if (wrapper.errors.length !== 0) {
+      if (wrapper.errors !== undefined) {
         setLogginButtonVisible(
           wrapper.errors[0].error.message,
           wrapper.errors.map(function(error) {
