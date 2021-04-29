@@ -31,10 +31,18 @@ export async function notificationsEnabled() {
          grantedPermissions.permissions.includes('notifications');
 }
 
+// Returns true if we should notify for errors.
+export async function notifyForErrors() {
+  const options = await browser.loadOptions();
+  return options.notifyForErrors != config.OPTION_DISABLED;
+}
+
 // Send notifications.
 export async function notify(results, errors) {
   if (await notificationsEnabled()) {
-    await notifyErrors(errors);
+    if (await notifyForErrors()) {
+      await notifyErrors(errors);
+    }
     await notifyCLs(results);
   }
 };
