@@ -67,4 +67,6 @@ export const DEFAULT_OPTIONS = {
   showNotifications: OPTION_UNSPECIFIED,
   // And the same for relying solely on the Attention Set feature
   onlyAttentionSet: OPTION_UNSPECIFIED,
+  // Show notifications for errors
+  notifyForErrors: OPTION_UNSPECIFIED,
 };

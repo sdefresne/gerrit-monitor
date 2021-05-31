@@ -23,6 +23,7 @@ export class Options {
     this.instances_ = [];
     this.onlyAttentionSet_ = config.OPTION_UNSPECIFIED;
     this.showNotifications_ = config.OPTION_UNSPECIFIED;
+    this.notifyForErrors_ = config.OPTION_UNSPECIFIED;
   }
 
   // Return the value for option.
@@ -33,6 +34,11 @@ export class Options {
   // Return true if notifications are enabled.
   notificationsEnabled() {
     return this.showNotifications_ !== config.OPTION_DISABLED;
+  }
+
+  // Return true if we should notify on error.
+  notifyOnErrorsEnabled() {
+    return this.notifyForErrors_ !== config.OPTION_DISABLED;
   }
 
   // Sets the status text (with a timeout).
@@ -150,6 +156,14 @@ export class Options {
     } else {
       this.showNotifications_ = config.OPTION_UNSPECIFIED;
     }
+
+    // Update the notify on error option.
+    if (options.notifyForErrors !== undefined) {
+      this.notifyForErrors_ = options.notifyForErrors;
+      browser.getElement('notify-for-errors').value = options.notifyForErrors;
+    } else {
+      this.notifyForErrors_ = config.OPTION_UNSPECIFIED;
+    }
   }
 
   // Save the options to Chrome storage and update permissions.
@@ -168,6 +182,7 @@ export class Options {
       instances: instances,
       onlyAttentionSet: this.onlyAttentionSet_,
       showNotifications: this.showNotifications_,
+      notifyForErrors: this.notifyForErrors_,
     };
 
     // Determine the set of origins we need access to.
@@ -231,6 +246,11 @@ export class Options {
     // Set up "show-notifications" option.
     browser.getElement('show-notifications').addEventListener('change', (function () {
       this.showNotifications_ = browser.getElement('show-notifications').value;
+    }).bind(this));
+
+    // Set up "show-notifications" option.
+    browser.getElement('notify-for-errors').addEventListener('change', (function () {
+      this.notifyForErrors_ = browser.getElement('notify-for-errors').value;
     }).bind(this));
 
     browser.getElement('save-button').addEventListener('click', (function () {
