@@ -632,7 +632,7 @@ export function fetchAccount(host) {
 export function fetchReviews(host, account) {
   var params = [];
   var userid = account._account_id;
-  params.push(['q', 'attention:' + userid]);
+  params.push(['q', 'status:open attention:' + userid]);
   params.push(['q', 'status:open owner:' + userid + ' -attention:' + userid]);
   params.push(['q', 'status:open -star:ignore reviewer:' + userid +
       ' -owner:' + userid + ' -attention:' + userid]);
