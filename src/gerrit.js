@@ -634,8 +634,10 @@ export function fetchReviews(host, account) {
   var userid = account._account_id;
   params.push(['q', 'attention:' + userid]);
   params.push(['q', 'status:open owner:' + userid + ' -attention:' + userid]);
-  params.push(['q', 'status:open -star:ignore reviewer:' + userid +
-      ' -owner:' + userid + ' -attention:' + userid]);
+  params.push(['q',
+    'status:open reviewer:' + userid +
+    ' -owner:' + userid +
+    ' -attention:' + userid]);
   params.push(['o', 'CURRENT_REVISION']);
   params.push(['o', 'DETAILED_LABELS']);
   params.push(['o', 'MESSAGES']);
