@@ -16,6 +16,8 @@ import * as config from './config.js';
 import * as messages from './messages.js';
 import * as utils from './utils.js';
 
+const isDOM = typeof window !== 'undefined'
+
 // Returns whether a permission change object is empty.
 function permissionChangeEmpty(permissions_change) {
   return permissions_change.origins.length === 0 &&
@@ -30,13 +32,13 @@ export function displayLoading() {
 // Updates the specified properties of the badge.
 export function updateBadge(data) {
   if ('icon' in data)
-    chrome.browserAction.setIcon({ path: data.icon });
+    chrome.action.setIcon({ path: data.icon });
   if ('text' in data)
-    chrome.browserAction.setBadgeText({ text: data.text });
+    chrome.action.setBadgeText({ text: data.text });
   if ('title' in data)
-    chrome.browserAction.setTitle({ title: data.title });
+    chrome.action.setTitle({ title: data.title });
   if ('color' in data)
-    chrome.browserAction.setBadgeBackgroundColor({ color: data.color });
+    chrome.action.setBadgeBackgroundColor({ color: data.color });
 };
 
 // Returns the DOM element with the given id.
@@ -67,51 +69,48 @@ export class FetchError {
 }
 
 // Returns a promise that will resolve to the content of the given path.
-export function fetchUrl(path, params, headers) {
-  return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    if (params) {
-      var separator = '?';
-      params.forEach(function(param) {
-        var key = encodeURIComponent(String(param[0]));
-        var val = encodeURIComponent(String(param[1]));
-        path += separator + key + '=' + val;
-        separator = '&';
-      });
-    }
-    xhr.open('GET', path, true);
-    if (headers) {
-      utils.Map.wrap(headers).forEach(function(key, value) {
-        xhr.setRequestHeader(key, value);
-      });
-    }
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState != 4)
-        return;
+export function fetchUrl(path, params, headers = {}) {
+  return new Promise(async function(resolve, reject) {
+    try {
+      if (params) {
+        var separator = '?';
+        params.forEach(function(param) {
+          var key = encodeURIComponent(String(param[0]));
+          var val = encodeURIComponent(String(param[1]));
+          path += separator + key + '=' + val;
+          separator = '&';
+        });
+      }
 
-      if (xhr.status == 200) {
-        resolve(xhr.responseText);
-      } else if (xhr.statusText == 'OK') {
+      const response = await fetch(path, {headers});
+      const statusCode = response.status;
+      const responseText = await response.text();
+
+      if (response.status == 200) {
+        resolve(responseText);
+      } else if (response.statusText == 'OK') {
         // The error message is in the response body. Those are likely
         // auth-related issues, so add login prompt.
-        reject(new FetchError(xhr.responseText + config.LOGIN_PROMPT,
+
+        reject(new FetchError(`${responseText}${config.LOGIN_PROMPT}`,
           true));
-      } else if (xhr.status >= 400 && xhr.status <= 403) {
+      } else if (statusCode >= 400 && statusCode <= 403) {
         // Authentication error, offer login.
         reject(
-          new FetchError("HTTP " + xhr.status + config.LOGIN_PROMPT,
+          new FetchError(`HTTP ${statusCode}${config.LOGIN_PROMPT}`,
             true));
-      } else if (xhr.statusText == '' && xhr.status == 0) {
+      } else if (response.statusText == '' && statusCode == 0) {
         // No error text and a status of 0 usually indicate a missing
         // cookie (e.g., a redirect to a sign-in service, which fails
         // the request due to Chrome's CORS restrictions). Add login prompt.
-        reject(new FetchError('Unknown error.' + config.LOGIN_PROMPT,
+        reject(new FetchError(`Unknown error. ${config.LOGIN_PROMPT}`,
           true));
       } else {
-        reject(new FetchError("HTTP " + xhr.status, false));
+        reject(new FetchError(`HTTP ${statusCode}`, false));
       }
+    } catch (error) {
+      reject(new FetchError(`Unknown error. ${error.message}`, false));
     };
-    xhr.send(null);
   });
 };
 
@@ -121,14 +120,22 @@ export function sendExtensionMessage(args, callback) {
 };
 
 // Adds a callback to be notifier of extension message.
-export function addExtensionMessageListener(callback) {
+export async function addExtensionMessageListener(callback) {
   chrome.runtime.onMessage.addListener(callback);
 }
 
 // Schedules a thunk to be called when all content is loaded.
-export function callWhenLoaded(thunk) {
-  window.addEventListener('DOMContentLoaded', thunk);
+export async function callWhenLoaded(thunk) {
+  if (isDOM) {
+    // we are in a DOM based environment
+    window.addEventListener('DOMContentLoaded', thunk);
+  } else {
+    // we are in something extension specific
+    chrome.runtime.onInstalled.addListener(thunk)
+  }
 };
+
+globalThis.chrome.runtime.onInstalled.addListener
 
 // Open a new tab displaying the given url, or activate the first
 // tab displaying the given url if one exists.
@@ -149,7 +156,7 @@ export function openUrl(urlString, reuse_if_possible) {
         return tab.active;
       });
 
-      if (active.length != 0) {
+      if (active.length != 0 && isDOM) {
         // If the active tab already present the given url, just close
         // the popup (as the activation will not close it automatically).
         window.close();
