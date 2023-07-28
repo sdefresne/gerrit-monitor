@@ -109,7 +109,7 @@ export function fetchUrl(path, params, headers = {}) {
         reject(new FetchError(`HTTP ${statusCode}`, false));
       }
     } catch (error) {
-      reject(new FetchError(`Unknown error. ${e.message}`, false));
+      reject(new FetchError(`Unknown error. ${error.message}`, false));
     };
   });
 };
