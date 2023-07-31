@@ -19,10 +19,10 @@ export function sendMessage() {
   var args = Array.prototype.slice.call(arguments);
   return new Promise(function(resolve, reject) {
     browser.sendExtensionMessage(args, function(response) {
-      if (response?.hasOwnProperty('value')) {
+      if (response.hasOwnProperty('value')) {
         resolve(response.value);
       } else {
-        reject(response?.error);
+        reject(response.error);
       }
     });
   });

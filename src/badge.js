@@ -166,8 +166,8 @@ class RequestProxy {
   }
 }
 
-browser.callWhenLoaded(async function() {
-  await browser.addExtensionMessageListener(
+browser.callWhenLoaded(function() {
+  browser.addExtensionMessageListener(
       newMessageProxy(new RequestProxy()));
 
   chrome.alarms.onAlarm.addListener(onAlarm);
