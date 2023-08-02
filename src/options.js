@@ -222,7 +222,7 @@ export class Options {
     this.loadOptions();
 
     browser.getElement('add-button-name').pattern = '.+';
-    browser.getElement('add-button-host').pattern = config.ORIGIN_PATTERN;
+    browser.getElement('add-button-host').pattern = config.ORIGIN_PATTERN.replace(/\//g, '\\/');
     browser.getElement('add-button').addEventListener('click', (function () {
       var host = browser.getElement('add-button-host').value;
       var name = browser.getElement('add-button-name').value;
