@@ -334,13 +334,17 @@ export class Changelist {
     return this.json_.subject;
   }
 
-  // Returns the CL description.
+  // Returns the CL description or null if not available.
   //
   // Requires detailed information (see fetchReviews).
   getDescription() {
     if (this.description_ === null) {
-      this.description_ = new Description(
-          this.getCurrentRevision().toJSON().commit.message);
+      const currentRevision = this.getCurrentRevision().toJSON();
+      if (currentRevision !== undefined) {
+        this.description_ = new Description(currentRevision.commit.message);
+      } else {
+        this.description_ = null;
+      }
     }
     return this.description_;
   }
