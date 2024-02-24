@@ -162,7 +162,7 @@ class ChangelistWidget {
 
   // Returns the CL description.
   getDescription() {
-    return this.cl_.getDescription();
+    return this.cl_.getDescription()?.getMessage?.() ?? this.cl_.getSubject();
   }
 
   // Configure click event on the table row.
@@ -218,7 +218,7 @@ class ChangelistWidget {
               .begin('td')
                 .begin('div')
                   .addClass('description')
-                  .appendText(this.getDescription().getMessage())
+                  .appendText(this.getDescription())
                 .end('div')
               .end('td')
             .end('tr')
